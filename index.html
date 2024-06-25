@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>S3 File Upload and Download</title>
+</head>
+<body>
+
+    <h1>Upload File to S3</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <input type ="text" name="filedir" placeholder="Enter target directory" required>
+            <button type="submit">Upload</button>
+        </form>
+
+    <h1>Download File from S3</h1>
+        <form action="/download" method="get">
+        <input type="text" name="filename" placeholder="Enter filename" required>
+        <button type="submit">Download</button>
+    </form>
+
+    <h1>S3 File Picker</h1>
+        <form id="s3_filepicker" action="/filepicker" method="get">
+            <label for="s3_filepicker">Choose a file:</label>
+            <select id="s3_filepick_select" class="filepick" name="filepick" data-style="btn-info">
+            </select>
+            <input type="submit" />
+        </form>
+        <>
+        <script>
+            fetch('/filepicker')
+                .then(response => response.json())
+                .then(s3_keys => {
+                    const filepickDropdown = document.getElementById('s3_filepick_select');
+
+                    s3_keys.forEach(s3_key => {
+                        const option = document.createElement('option');
+                        option.value = s3_key;
+                        option.text = s3_key;
+                        filepickDropdown.appendChild(option);
+                    });
+                })
+                .catch(e => console.error('Error fetching data:',e))
+        </script>
+</body>
+</html>

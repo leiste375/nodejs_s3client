@@ -1,0 +1,140 @@
+//Script posted into the label within OpenSpecimen GUI. Please note that the code below is not intended to be run by itself
+
+<script>
+function createS3LoginForm(container, onSuccess) {
+    const S3LoginForm = document.createElement('form');
+    S3LoginForm.action = 'https://localhost:3000/login';
+    S3LoginForm.method = 'post';
+
+    const S3LabelUser = document.createElement('label');
+    S3LabelUser.setAttribute('for', 'username');
+    S3LabelUser.innerHTML = 'Username:&nbsp;';
+    S3LoginForm.appendChild(S3LabelUser);
+
+    const S3InputUsername = document.createElement('input');
+    S3InputUsername.type = 'text';
+    S3InputUsername.id = 'username';
+    S3InputUsername.name = 'username';
+    S3InputUsername.required = true;
+    S3LoginForm.appendChild(S3InputUsername);
+
+    const S3LabelPass = document.createElement('label');
+    S3LabelPass.setAttribute('for', 'password');
+    S3LabelPass.innerHTML = '&nbsp;Password:&nbsp;';
+    S3LoginForm.appendChild(S3LabelPass);
+
+    const S3InputPass = document.createElement('input');
+    S3InputPass.type = 'password';
+    S3InputPass.id = 'password';
+    S3InputPass.name = 'password';
+    S3InputPass.required = true;
+    S3LoginForm.appendChild(S3InputPass);
+
+    const space = document.createTextNode('\u00A0');
+    S3LoginForm.appendChild(space);
+
+    const S3LoginSubmit = document.createElement('button');
+    S3LoginSubmit.type = 'submit';
+    S3LoginSubmit.innerHTML = 'Login';
+    S3LoginForm.appendChild(S3LoginSubmit);
+  
+    S3LoginForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(S3LoginForm);
+        const data = new URLSearchParams();
+        for (const pair of formData) {
+                data.append(pair[0], pair[1]);
+        }
+        fetch(S3LoginForm.action, {
+            method: 'POST',
+            body: data,
+            credentials: 'include',
+            headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(response => {
+            console.log(response);
+            if ( response.ok ) {
+                S3LoginForm.style = ("display: none");
+                onSuccess();
+            } else {
+                return response.text().then(text => { throw new Error(text) });
+            }
+        })
+        .catch(e => {
+            console.error('Error during login:', e);
+            alert('Login failed: ' + e.message);
+        });
+    });
+  container.appendChild(S3LoginForm);
+}
+
+function createS3Filepicker(container, container_inner, S3KeysJson) {
+    var newS3Filepicker = document.createElement('select');
+    newS3Filepicker.id = 's3_filepick_select';
+    newS3Filepicker.className = 'filepick';
+    newS3Filepicker.name = 'filepick';
+    newS3Filepicker.onchange = function() { container_inner.value = this.value };
+    S3KeysJson.forEach(s3_key => {
+        const option = document.createElement('option');
+        option.value = s3_key;
+        option.text = s3_key;
+        newS3Filepicker.appendChild(option);
+        container.appendChild(newS3Filepicker);
+    });
+}
+
+var currentURL = window.location.href;
+if ( currentURL.includes("addedit-specimen") ) {
+    var xpath = "//span[contains(text(),'frX Storage Location')]";
+    var S3Input = document.evaluate( xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null ).singleNodeValue.parentNode.parentNode.childNodes[1];
+    var S3InputElement = S3Input.childNodes[0];
+    console.log(S3Input);
+    S3InputElement.style = "display: none";
+    //newS3Filepicker.data-style = 'btn-info';
+    fetch( 'https://localhost:3000/filepicker', {credentials: 'include'} )
+        .then(response => {
+            console.log(response);
+            if ( response.redirected && response.url.endsWith('/login') ) {
+                return new Promise(resolve => { 
+                    createS3LoginForm(S3Input, function() {
+                        resolve( 
+                            fetch( 'https://localhost:3000/filepicker', { credentials: 'include' } )
+                            .then( response => {
+                                console.log(response);
+                                return response.json();
+                            })
+                        );
+                    });
+                });
+            } else {
+                return response.json();
+            }
+        })
+        .then(s3_keys => {
+            if (s3_keys) {
+                createS3Filepicker(S3Input, S3InputElement, s3_keys);
+            }
+        })
+        .catch(e => console.error('Error fetching data:',e))
+} else if ( currentURL.includes("overview") ) {
+    //Search for correct DOM Element based on its label text, from there, search for the correct child. If UI changes then this will need to change as well.
+    var xpath = "//strong[text()='frX Storage Location']";
+    var S3Element = document.evaluate( xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null ).singleNodeValue.parentNode.childNodes[3].childNodes[2];
+    //console.log(S3Element)
+    var S3DownloadKey = S3Element.innerText.toString().replace(/\s/g,'');
+    if (S3DownloadKey.startsWith('/')) {
+        S3DownloadKey = S3DownloadKey.substring(1);
+    }
+    console.log(S3DownloadKey)
+    //Create new DOM Element and replace.
+    var newElement = document.createElement('a');
+    newElement.href = `https://localhost:3000/download?filename=${S3DownloadKey}`;
+    newElement.textContent = 'Download';
+    newElement.target = '_blank';
+    newElement.download = S3DownloadKey;
+
+    document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.parentNode.childNodes[3].replaceChild(newElement, S3Element);
+}
+</script>
