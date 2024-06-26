@@ -1,0 +1,22 @@
+body {
+    background-color: white;
+    font-family: 'andale mono', monospace;
+}
+.login_form {
+    margin: auto;
+    width: 50%;
+    text-align: center;
+}
+.login_form label, .s3_form label {
+    display: block;
+    margin: 10px 0 10px 0;
+}
+.login_form button, .s3_form button {
+    display: block;
+    margin: 20px auto 0 auto;
+}
+.s3_form {
+    width: 80%;
+    margin:auto;
+    text-align: center;
+}

@@ -11,8 +11,8 @@ const { S3Client, GetObjectCommand, PutObjectCommand, paginateListObjectsV2 } = 
 const app = express();
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
-app.use(bodyParser.urlencoded({ extended: true }));
 
+//Setup for express app below
 //Handle CORS & enable request from OpenSpecimen Server for cross-site requests.
 const cors = require('cors');
 const corsOption = {
@@ -22,13 +22,10 @@ const corsOption = {
     allowedHeaders: [ 'Content-Type','Access-Control-Allow-Credentials', 'Authorization' ]
 };
 app.use(cors(corsOption));
-
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json())
-
+app.use(bodyParser.json());
+//app.use(express.static(path.join(__dirname, '/public/login.html')));
+app.use(express.static(path.join(__dirname, '/public')));
 // Use sessions to track logged-in users
 app.use(cookieParser());
 app.use(session({
@@ -56,6 +53,8 @@ httpHandler.sslAgent = new https.Agent({
     rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0'
 });
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 // AWS S3 configuration
 const s3Client = new S3Client({
     region: process.env.AWS_REGION,
@@ -94,7 +93,7 @@ app.get('/', handleLogin, (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'login.html'));
+    res.sendFile(path.join(__dirname, '/public/login.html'));
 });
 // Endpoint to authenticate a user
 app.post('/login', (req, res) => {

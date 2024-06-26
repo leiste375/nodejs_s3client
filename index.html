@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>S3 File Upload and Download</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-
+    <div class="s3_form">
     <h1>Upload File to S3</h1>
         <form action="/upload" method="post" enctype="multipart/form-data">
             <input type="file" name="file" required>
@@ -26,7 +27,6 @@
             </select>
             <input type="submit" />
         </form>
-        <>
         <script>
             fetch('/filepicker')
                 .then(response => response.json())
@@ -42,5 +42,6 @@
                 })
                 .catch(e => console.error('Error fetching data:',e))
         </script>
+    </div>
 </body>
 </html>
