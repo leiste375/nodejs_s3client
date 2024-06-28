@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>S3 File Upload and Download</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/png" href="graphics/favicon.png">
 </head>
 <body>
     <div class="s3_form">
@@ -15,33 +16,29 @@
         </form>
 
     <h1>Download File from S3</h1>
-        <form action="/download" method="get">
-        <input type="text" name="filename" placeholder="Enter filename" required>
+    <form action="/download" method="get">
+            <label for="s3_filepicker">Choose a file:</label>
+                    <!--<input id="s3_download_id" type="text" name="filename" placeholder="Enter filename" required>-->
+            <select id="s3_filepick_select" type="text" class="filename" name="filename" data-style="btn-info" placeholder="Choose object.">
+                </select>
+                <!--<input type="submit" />-->
+            <script>
+                fetch('/filepicker')
+                    .then(response => response.json())
+                    .then(s3_keys => {
+                        const filepickDropdown = document.getElementById('s3_filepick_select');
+
+                        s3_keys.forEach(s3_key => {
+                            const option = document.createElement('option');
+                            option.value = s3_key;
+                            option.text = s3_key;
+                            filepickDropdown.appendChild(option);
+                        });
+                    })
+                    .catch(e => console.error('Error fetching data:',e))
+            </script>
         <button type="submit">Download</button>
     </form>
-
-    <h1>S3 File Picker</h1>
-        <form id="s3_filepicker" action="/filepicker" method="get">
-            <label for="s3_filepicker">Choose a file:</label>
-            <select id="s3_filepick_select" class="filepick" name="filepick" data-style="btn-info">
-            </select>
-            <input type="submit" />
-        </form>
-        <script>
-            fetch('/filepicker')
-                .then(response => response.json())
-                .then(s3_keys => {
-                    const filepickDropdown = document.getElementById('s3_filepick_select');
-
-                    s3_keys.forEach(s3_key => {
-                        const option = document.createElement('option');
-                        option.value = s3_key;
-                        option.text = s3_key;
-                        filepickDropdown.appendChild(option);
-                    });
-                })
-                .catch(e => console.error('Error fetching data:',e))
-        </script>
     </div>
 </body>
 </html>

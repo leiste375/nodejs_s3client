@@ -178,12 +178,12 @@ app.get('/download', handleLogin, async (req, res) => {
 });
 
 //Endpoint to serve a JSON of all available objects in storage.
-//Note that list-objects-v2 will only return up to 1000 keys according to the documentatio. Should eventually be handled.
+//Note that list-objects-v2 will only return up to 1000 keys according to the documentation. 
+//Should eventually be handled but is ignored as of this writing.
 app.get('/filepicker', handleLogin, async (req, res) => {
     //await S3ObjectList(s3Client);
 
     const S3ListPath = path.join(__dirname, "/downloads/example.json");
-    console.log(S3ListPath);
     fs.readFile(S3ListPath, (e, data) => {
         if (e) {
             console.error('Error while reading file:',e);
