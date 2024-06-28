@@ -1,3 +1,16 @@
+/*MUG corporate design colors:*/
+:root {
+    --dark-green: #007934;
+    --light-green: #34b233;
+    --main-orange: #ff7f45;
+    /*Dark to lighter tones of grey.*/
+    --grey-1: #393b41;
+    --grey-2: #6b6d74;
+    --grey-3: #94959a;
+    --grey-4: #bfc0c2;
+    --grey-5: #dbdce0;
+}
+
 body {
     background-color: white;
     font-family: 'andale mono', monospace;
@@ -14,6 +27,30 @@ body {
 .login_form button, .s3_form button {
     display: block;
     margin: 20px auto 0 auto;
+    background: var(--dark-green);
+    border-radius: 4px;
+    border: none;
+    color: white;
+    padding: 4px 4px 4px 4px;
+}
+.login_form button:hover, .s3_form button:hover {
+    box-shadow: 0 0 3px 2px var(--dark-green);
+    transition: .2s;
+}
+.login_form input, .s3_form input[type=text]{
+    box-shadow: 0 0 2px 2px var(--grey-5);
+    border-radius: 2px;
+    border: none;
+}
+.login_form input:hover, .s3_form input[type=text]:hover{
+    box-shadow: 0 0 1px 2px var(--light-green);
+    transition: .4s;
+}
+input:focus {outline:none;}
+.login_form input:focus, .s3_form input[type=text]:focus{
+    /*border: 1px solid var(--dark-green);*/
+    box-shadow: 0 0 3px 3px var(--light-green);
+    transition: .1s;
 }
 .s3_form {
     width: 80%;
