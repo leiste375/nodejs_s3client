@@ -48,7 +48,8 @@ const { NodeHttpHandler } = require('@smithy/node-http-handler');
 const LdapAuthenticator = require('./ldap');
 const httpHandler = new NodeHttpHandler({
 });
-//Disable SSL for all S3 API calls for testing purposes. Disable in production.
+
+//Disable SSL for all S3 API calls for testing purposes. Set via NODE_TLS_REJECT_UNAUTHORIZED in .env
 httpHandler.sslAgent = new https.Agent({
     rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0'
 });
@@ -64,15 +65,23 @@ const s3Client = new S3Client({
     },
     endpoint: process.env.S3_ENDPOINT,
     requestHandler: httpHandler,
+    forcePathStyle: true,
 });
 
-//Async function to sync list of objects in storage.
+//Async function to get list of objects in storage
 async function S3ObjectList(client) {
-    const ObjList = [];
-    for await (const data of paginateListObjectsV2({ client }, { Bucket: "mug-intern" } )) {
-        ObjList.push(...(data.Contents ?? []));
+    const objList = [];
+    for await (const data of paginateListObjectsV2({ client }, { Bucket: "mug-openspecimen" } )) {
+        objList.push(...(data.Contents ?? []));
     }
-    return ObjList;
+    const s3Json = { Contents: objList };
+    const jsonData = JSON.stringify(s3Json, null, 4);
+    fs.writeFile(path.join(__dirname, '/downloads/s3ObjectList.json'), jsonData, 'utf-8', function(e) {
+        if (e) {
+            console.log(e);
+        }
+    });
+    return jsonData;
 };
 
 //Simple function to check if users are logged in.
@@ -141,6 +150,9 @@ app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
         if (!filedir.endsWith('/')) {
             filedir +='/';
         }
+        if (filedir.startsWith('/')) {
+            filedir = filedir.slice(1);
+        }
 
         const s3_key = filedir.concat(filename);
         const params = {
@@ -152,6 +164,7 @@ app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
         await s3Client.send(command);
         res.send('File uploaded successfully!');
     } catch (e) {
+        console.log(e)
         res.status(500).send(e.message);
     }
 });
@@ -177,13 +190,10 @@ app.get('/download', handleLogin, async (req, res) => {
     }
 });
 
-//Endpoint to serve a JSON of all available objects in storage.
-//Note that list-objects-v2 will only return up to 1000 keys according to the documentation. 
-//Should eventually be handled but is ignored as of this writing.
-app.get('/filepicker', handleLogin, async (req, res) => {
-    //await S3ObjectList(s3Client);
-
-    const S3ListPath = path.join(__dirname, "/downloads/example.json");
+//Endpoint to serve a JSON of all available objects in storage. The first endpoint serves a previously downloaded JSON,
+//whereas the second endpoint will update the list. 
+app.get('/filepicker1', handleLogin, async (req, res) => {
+    const S3ListPath = path.join(__dirname, "/downloads/s3ObjectList.json");
     fs.readFile(S3ListPath, (e, data) => {
         if (e) {
             console.error('Error while reading file:',e);
@@ -191,13 +201,24 @@ app.get('/filepicker', handleLogin, async (req, res) => {
         }
         try {
             const jsonData = JSON.parse(data);
-            const jsonFiltered = jsonData.Contents.map(item => item.Key);
+            const jsonFiltered = jsonData.Contents.map(item => ({ Key: item.Key, Size: item.Size }));
             res.json(jsonFiltered);
         } catch (e) {
             console.error('Error while parsing json:',e);
         }
     })
 });
+app.get('/filepicker2', handleLogin, async (req, res) => {
+    try {
+        currentS3List = await S3ObjectList(s3Client);
+        //console.log(currentS3List);
+        const jsonDataNew = JSON.parse(currentS3List);
+        const jsonFilteredNew = jsonDataNew.Contents.map(item => ({ Key: item.Key, Size: item.Size }));
+        res.json(jsonFilteredNew);
+    } catch(e) {
+        console.error('Error while updating list:',e)
+    }
+})
 
 const httpsOptions = {
   key: fs.readFileSync(process.env.HTTPS_KEY),
