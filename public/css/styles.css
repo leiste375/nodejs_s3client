@@ -37,17 +37,17 @@ body {
     box-shadow: 0 0 3px 2px var(--dark-green);
     transition: .2s;
 }
-.login_form input, .s3_form input[type=text]{
+.login_form input, .s3_form input[type=text] {
     box-shadow: 0 0 2px 2px var(--grey-5);
     border-radius: 2px;
     border: none;
 }
-.login_form input:hover, .s3_form input[type=text]:hover{
+.login_form input:hover, .s3_form input[type=text]:hover, .S3_Filebrowser_UI button:hover {
     box-shadow: 0 0 1px 2px var(--light-green);
     transition: .4s;
 }
 input:focus {outline:none;}
-.login_form input:focus, .s3_form input[type=text]:focus{
+.login_form input:focus, .s3_form input[type=text]:focus, .S3_Filebrowser_UI button:focus {
     /*border: 1px solid var(--dark-green);*/
     box-shadow: 0 0 3px 3px var(--light-green);
     transition: .1s;
@@ -57,3 +57,44 @@ input:focus {outline:none;}
     margin:auto;
     text-align: center;
 }
+.S3_Filebrowser_UI {
+    width: 75%;
+    display: flex;
+    flex-wrap: wrap;
+    margin: auto;
+    padding-top: 1em;
+}
+.S3_Filebrowser_UI button {
+    padding: .25em .3em .25em .3em;
+    transition: .4s;
+    background: white;
+    border-radius: 2px;
+    border: 1px solid var(--grey-5);
+    color: black;
+    width: 150px;
+    height: 100px;
+    margin: .5em auto .5em auto;
+    position: relative;
+}
+.S3_UI_Button_Inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    margin: .5em .5em .5em .5em;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: wrap;
+    overflow-wrap: break-word;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2em;
+}
+.S3_Filebrowser_UI button:hover {
+    transition: .2s !important;
+}
+

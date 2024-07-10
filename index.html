@@ -11,7 +11,7 @@
     <h1>Upload File to S3</h1>
         <form action="/upload" method="post" enctype="multipart/form-data">
             <input type="file" name="file" required>
-            <input type ="text" name="filedir" placeholder="Enter target directory" required>
+            <input id="S3_Upload_Dir_Input" type ="text" name="filedir" placeholder="Enter target directory or choose below" required>
             <button type="submit">Upload</button>
         </form>
 
@@ -50,29 +50,48 @@
                         if (s3Keys[s3Entry].hasOwnProperty('Key') && (typeof s3Keys[s3Entry].Key) == 'string') {
                             let dirName;
                             let currentS3Key = s3Keys[s3Entry].Key;
+                            //Pretty names
                             if (!s3Keys[s3Entry].Key.endsWith('/')) {
                                 dirName = currentS3Key;
                             } else {
                                 dirName = currentS3Key.slice(0, -1);
                             }
+                            //Pretty icons for pretty buttons
+                            if (s3Keys[s3Entry].Size > 0) {
+                                var IconSrc = 'graphics/FileIconCC.svg';
+                            } else {
+                                var IconSrc = 'graphics/DirIconCC.svg';
+                            }
                             let button = document.createElement('button');
                             button.id = `S3_Filepick_Btn_${s3ListRunningId}`;
                             button.className = 'S3_Filepick_UI';
-                            button.innerHTML = `<img src=\"graphics/DirIconCC.svg\" width=\"32\" height=\"32\"><br>${dirName}`;
+                            button.innerHTML = `<div class="S3_UI_Button_Inner"><img src=\"${IconSrc}\" width=\"32\" height=\"32\"><br>${dirName}</div>`;
                             s3FilepickerUI.appendChild(button);
-                            document.getElementById(`S3_Filepick_Btn_${s3ListRunningId}`).addEventListener( 'click', function(){ changeDir(currentS3Key) } );
+                            document.getElementById(`S3_Filepick_Btn_${s3ListRunningId}`).addEventListener( 'click', function(){ s3UIHandleButton(currentS3Key) } );
                             s3ListRunningId += 1;
                         }
                     };
                 };
-                function changeDir(s3Key) {
-                    const filepickDropdown = document.getElementById('S3_Filepick_Select');
+                function s3UIHandleButton(s3Key) {
+                    const uploadInput = document.getElementById('S3_Upload_Dir_Input');
+                    const divUI = document.getElementById('S3_UI_Messages');
+                    divUI.innerHTML = ''
                     const traverseJson = (s3Objects, s3Key) => {
                         for (s3Object in s3Objects) {
-                            console.log(s3Key);
                             if (s3Objects[s3Object].hasOwnProperty('Key') && s3Objects[s3Object].Key == s3Key) {
-                                s3InitializeUI(s3Objects[s3Object]);
-                                return
+                                if (Object.keys(s3Objects[s3Object]).length <= 2 && s3Objects[s3Object].Size == 0) {
+                                    divUI.innerHTML += "<p>Directory empty.</p>";
+                                    uploadInput.value = s3Key;
+                                    return
+                                } else if (Object.keys(s3Objects[s3Object]).length <= 2 && s3Objects[s3Object].Size > 0){
+                                    document.getElementById('S3_Filepick_Select').value = s3Key;
+                                    return
+                                } else {
+                                    uploadInput.value = s3Key;
+                                    dirLvl += 1;
+                                    s3InitializeUI(s3Objects[s3Object]);
+                                    return
+                                }
                             } else if ( (typeof s3Objects[s3Object]) == 'object' && Object.keys(s3Objects[s3Object]).length > 2 ) {
                                 traverseJson(s3Objects[s3Object], s3Key);
                             }
@@ -84,6 +103,7 @@
                     .then(response => response.json())
                     .then(s3Keys => {
                         s3KeysGlobalVar = s3Keys;
+                        dirLvl = 0;
                         const filepickDropdown = document.getElementById('S3_Filepick_Select');
                         fillS3Download(filepickDropdown, s3KeysGlobalVar);
                         s3InitializeUI(s3KeysGlobalVar);
@@ -93,6 +113,7 @@
                     .then(response => response.json())
                     .then(currentS3Keys => {
                         s3KeysGlobalVar = currentS3Keys;
+                        dirLvl = 0;
                         const filepickDropdown = document.getElementById('S3_Filepick_Select');
                         filepickDropdown.innerHTML = '';
                         fillS3Download(filepickDropdown, s3KeysGlobalVar);
@@ -104,6 +125,8 @@
             </script>
         <button type="submit">Download</button>
         </form>
+        <div id="S3_UI_Messages" class="S3_UI_Messages">
+        </div>
         <div id="S3_Filepick_UI" class="S3_Filebrowser_UI">
         </div>
     </div>
