@@ -19,42 +19,93 @@
     <form action="/download" method="get">
             <label for="s3_filepicker">Choose a file:</label>
                     <!--<input id="s3_download_id" type="text" name="filename" placeholder="Enter filename" required>-->
-            <select id="s3_filepick_select" type="text" class="filename" name="filename" data-style="btn-info" placeholder="Choose object.">
-                </select>
-                <!--<input type="submit" />-->
+            <select id="S3_Filepick_Select" type="text" class="filename" name="filename" data-style="btn-info" placeholder="Choose object.">
+            </select>
             <script>
+                //Fill filepicker dropdown menu containing all files in S3 storage.
+                function fillS3Download(s3HTMLElement, s3Keys) {
+                    const traverseJson = (s3objects) => {
+                        for (s3object in s3objects) {
+                            //Check if object is a file & add option to dropdown menu.
+                            if ( s3objects[s3object].hasOwnProperty('Key') && (typeof s3objects[s3object].Key) == 'string' && s3objects[s3object].Size != 0 ) {
+                                const option = document.createElement('option');
+                                option.value = s3objects[s3object].Key;
+                                option.text = s3objects[s3object].Key;
+                                s3HTMLElement.appendChild(option);
+                            //Restart loop if object contains other objects.
+                            } else if ( (typeof s3objects[s3object]) == 'object' && Object.keys(s3objects[s3object]).length > 2 ) {
+                                traverseJson(s3objects[s3object]);
+                            }
+                        }
+                    };
+                    traverseJson(s3Keys);
+                };
+                //Construct root directory in UI
+                function s3InitializeUI(s3Keys) {
+                    const s3FilepickerUI = document.getElementById('S3_Filepick_UI');
+                    s3FilepickerUI.innerHTML = '';
+                    var s3ListRunningId = 0;
+                    for (s3Entry in s3Keys) {
+                        //Ensure we have a valid S3 Object, and Key is not itself a directory within. 
+                        if (s3Keys[s3Entry].hasOwnProperty('Key') && (typeof s3Keys[s3Entry].Key) == 'string') {
+                            let dirName;
+                            let currentS3Key = s3Keys[s3Entry].Key;
+                            if (!s3Keys[s3Entry].Key.endsWith('/')) {
+                                dirName = currentS3Key;
+                            } else {
+                                dirName = currentS3Key.slice(0, -1);
+                            }
+                            let button = document.createElement('button');
+                            button.id = `S3_Filepick_Btn_${s3ListRunningId}`;
+                            button.className = 'S3_Filepick_UI';
+                            button.innerHTML = `<img src=\"graphics/DirIconCC.svg\" width=\"32\" height=\"32\"><br>${dirName}`;
+                            s3FilepickerUI.appendChild(button);
+                            document.getElementById(`S3_Filepick_Btn_${s3ListRunningId}`).addEventListener( 'click', function(){ changeDir(currentS3Key) } );
+                            s3ListRunningId += 1;
+                        }
+                    };
+                };
+                function changeDir(s3Key) {
+                    const filepickDropdown = document.getElementById('S3_Filepick_Select');
+                    const traverseJson = (s3Objects, s3Key) => {
+                        for (s3Object in s3Objects) {
+                            console.log(s3Key);
+                            if (s3Objects[s3Object].hasOwnProperty('Key') && s3Objects[s3Object].Key == s3Key) {
+                                s3InitializeUI(s3Objects[s3Object]);
+                                return
+                            } else if ( (typeof s3Objects[s3Object]) == 'object' && Object.keys(s3Objects[s3Object]).length > 2 ) {
+                                traverseJson(s3Objects[s3Object], s3Key);
+                            }
+                        };
+                    };
+                    traverseJson(s3KeysGlobalVar, s3Key);
+                };
                 fetch('/filepicker1')
                     .then(response => response.json())
-                    .then(s3_keys => {
-                        const filepickDropdown = document.getElementById('s3_filepick_select');
-
-                        s3_keys.forEach(s3_entry => {
-                            const option = document.createElement('option');
-                            option.value = s3_entry.Key;
-                            option.text = s3_entry.Key;
-                            filepickDropdown.appendChild(option);
-                        });
+                    .then(s3Keys => {
+                        s3KeysGlobalVar = s3Keys;
+                        const filepickDropdown = document.getElementById('S3_Filepick_Select');
+                        fillS3Download(filepickDropdown, s3KeysGlobalVar);
+                        s3InitializeUI(s3KeysGlobalVar);
                     })
                     .catch(e => console.error('Error fetching data:',e));
                 fetch('/filepicker2')
                     .then(response => response.json())
                     .then(currentS3Keys => {
-                        const filepickDropdown = document.getElementById('s3_filepick_select');
+                        s3KeysGlobalVar = currentS3Keys;
+                        const filepickDropdown = document.getElementById('S3_Filepick_Select');
                         filepickDropdown.innerHTML = '';
-                        
-                        currentS3Keys.forEach(s3_entry => {
-                            const option = document.createElement('option');
-                            option.value = s3_entry.Key;
-                            option.text = s3_entry.Key;
-                            filepickDropdown.appendChild(option);
-                        });
+                        fillS3Download(filepickDropdown, s3KeysGlobalVar);
+                        s3InitializeUI(s3KeysGlobalVar);
                     })
                     .catch(e => {
                         console.error('Error updating S3 object list:',e);
                     })
             </script>
         <button type="submit">Download</button>
-    </form>
+        </form>
+        <div id="S3_Filepick_UI" class="S3_Filebrowser_UI">
+        </div>
     </div>
 </body>
 </html>

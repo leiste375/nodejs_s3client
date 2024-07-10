@@ -24,8 +24,8 @@ const corsOption = {
 app.use(cors(corsOption));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-//app.use(express.static(path.join(__dirname, '/public/login.html')));
 app.use(express.static(path.join(__dirname, '/public')));
+
 // Use sessions to track logged-in users
 app.use(cookieParser());
 app.use(session({
@@ -71,7 +71,7 @@ const s3Client = new S3Client({
 //Async function to get list of objects in storage
 async function S3ObjectList(client) {
     const objList = [];
-    for await (const data of paginateListObjectsV2({ client }, { Bucket: "mug-openspecimen" } )) {
+    for await (const data of paginateListObjectsV2({ client }, { Bucket: 'mug-openspecimen' } )) {
         objList.push(...(data.Contents ?? []));
     }
     const s3Json = { Contents: objList };
@@ -82,6 +82,35 @@ async function S3ObjectList(client) {
         }
     });
     return jsonData;
+};
+
+//Create a directory structure out of a S3 object list.
+function S3DirStructure(s3ObjList) {
+    const finalJson = {};
+    s3ObjList.forEach(s3Entry => {
+        //Split Key string and loop through resulting list.
+        var path = s3Entry.Key.split("/").filter(part => part !== '');
+        let runningJson = finalJson;
+        path.forEach((part, index) => {
+            if (index == path.length - 1) {
+                if (s3Entry.Size == 0) {
+                    runningJson[part] = s3Entry;
+                } else {
+                    runningJson[part] = s3Entry;
+                };
+            } else if (!runningJson[part]) {
+                runningJson[part] = [];
+            }
+            runningJson = runningJson[part];
+        });
+    });
+    jsonData = JSON.stringify(finalJson, null, 4);
+    fs.writeFile(path.join(__dirname, '/downloads/s3DirStructure.json'), jsonData, 'utf-8', function(e) {
+        if (e) {
+            console.log(e);
+        }
+    });
+    return finalJson;
 };
 
 //Simple function to check if users are logged in.
@@ -107,7 +136,7 @@ app.get('/login', (req, res) => {
 // Endpoint to authenticate a user
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    const AllowedUsers = process.env.S3_USERS.split(",");
+    const AllowedUsers = process.env.S3_USERS.split(',');
 
     //Ensure that form isn't empty and that users are authorized. Array of users is currently defined via .env file.
     if (!username || !password) {
@@ -127,7 +156,7 @@ app.post('/login', (req, res) => {
                 delete req.session.returnTo;
                 res.status(200).redirect(returnTo);
             /*} else {
-                console.log("Authentication failed: ", e);
+                console.log('Authentication failed: ', e);
                 res.status(401).send('Authentication failed');*/
             }
         })
@@ -193,7 +222,7 @@ app.get('/download', handleLogin, async (req, res) => {
 //Endpoint to serve a JSON of all available objects in storage. The first endpoint serves a previously downloaded JSON,
 //whereas the second endpoint will update the list. 
 app.get('/filepicker1', handleLogin, async (req, res) => {
-    const S3ListPath = path.join(__dirname, "/downloads/s3ObjectList.json");
+    const S3ListPath = path.join(__dirname, '/downloads/s3ObjectList.json');
     fs.readFile(S3ListPath, (e, data) => {
         if (e) {
             console.error('Error while reading file:',e);
@@ -202,7 +231,8 @@ app.get('/filepicker1', handleLogin, async (req, res) => {
         try {
             const jsonData = JSON.parse(data);
             const jsonFiltered = jsonData.Contents.map(item => ({ Key: item.Key, Size: item.Size }));
-            res.json(jsonFiltered);
+            finalList = S3DirStructure(jsonFiltered);
+            res.json(finalList);
         } catch (e) {
             console.error('Error while parsing json:',e);
         }
@@ -214,7 +244,8 @@ app.get('/filepicker2', handleLogin, async (req, res) => {
         //console.log(currentS3List);
         const jsonDataNew = JSON.parse(currentS3List);
         const jsonFilteredNew = jsonDataNew.Contents.map(item => ({ Key: item.Key, Size: item.Size }));
-        res.json(jsonFilteredNew);
+        const finalListNew = S3DirStructure(jsonFilteredNew);
+        res.json(finalListNew);
     } catch(e) {
         console.error('Error while updating list:',e)
     }
