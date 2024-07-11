@@ -77,22 +77,14 @@ input:focus {outline:none;}
     position: relative;
 }
 .S3_UI_Button_Inner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
     margin: .5em .5em .5em .5em;
     box-sizing: border-box;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: wrap;
     overflow-wrap: break-word;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     line-height: 1.2em;
+    max-height: 85px;
 }
 .S3_Filebrowser_UI button:hover {
     transition: .2s !important;

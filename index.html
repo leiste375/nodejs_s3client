@@ -51,10 +51,9 @@
                             let dirName;
                             let currentS3Key = s3Keys[s3Entry].Key;
                             //Pretty names
-                            if (!s3Keys[s3Entry].Key.endsWith('/')) {
-                                dirName = currentS3Key;
-                            } else {
-                                dirName = currentS3Key.slice(0, -1);
+                            dirName = currentS3Key.split('/')[dirLvl];
+                            if (dirName.endsWith('/')) {
+                                dirName = dirName.slice(0, -1);
                             }
                             //Pretty icons for pretty buttons
                             if (s3Keys[s3Entry].Size > 0) {
