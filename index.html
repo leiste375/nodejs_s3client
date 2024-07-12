@@ -8,14 +8,14 @@
 </head>
 <body>
     <div class="s3_form">
-    <h1>Upload File to S3</h1>
+    <h2>Upload File to S3</h2>
         <form action="/upload" method="post" enctype="multipart/form-data">
             <input type="file" name="file" required>
             <input id="S3_Upload_Dir_Input" type ="text" name="filedir" placeholder="Enter target directory or choose below" required>
             <button type="submit">Upload</button>
         </form>
 
-    <h1>Download File from S3</h1>
+    <h2>Download File from S3</h2>
     <form action="/download" method="get">
             <label for="s3_filepicker">Choose a file:</label>
                     <!--<input id="s3_download_id" type="text" name="filename" placeholder="Enter filename" required>-->
@@ -88,6 +88,12 @@
                                 } else {
                                     uploadInput.value = s3Key;
                                     dirLvl += 1;
+                                    const currentLvl = dirLvl;
+                                    let navButton = document.createElement('button');
+                                    navButton.id = `${currentLvl}_nav_btn`;
+                                    navButton.innerHTML = `<img src=\"graphics/OpenDirIconCC.svg\" width=\"24\" height=\"24\">${s3Key.split('/')[currentLvl - 1]}`;
+                                    document.getElementById('S3_UI_NavBar').appendChild(navButton);
+                                    document.getElementById(`${currentLvl}_nav_btn`).addEventListener( 'click', function(){ s3NavButton(currentLvl, s3Key) } );
                                     s3InitializeUI(s3Objects[s3Object]);
                                     return
                                 }
@@ -98,6 +104,27 @@
                     };
                     traverseJson(s3KeysGlobalVar, s3Key);
                 };
+                function s3NavButton(targetLvl, s3Key) {
+                    if (targetLvl == dirLvl) {
+                        return;
+                    }
+                    for (let i = dirLvl; i >= targetLvl && i != 0; i--) {
+                        let navBtnString = `${i}_nav_btn`;
+                        document.getElementById(navBtnString).remove();
+                    }
+                    if (targetLvl == 0) {
+                        console.log('Going home')
+                        dirLvl = targetLvl;
+                        s3InitializeUI(s3KeysGlobalVar);
+                    } else {
+                        dirLvl = targetLvl - 1;
+                        s3UIHandleButton(s3Key);
+                    }
+                }
+                function s3HomeButton(targetLvl) {
+                    dirLvl = targetLvl;
+                    s3InitializeUI(s3KeysGlobalVar);
+                }
                 fetch('/filepicker1')
                     .then(response => response.json())
                     .then(s3Keys => {
@@ -124,10 +151,12 @@
             </script>
         <button type="submit">Download</button>
         </form>
-        <div id="S3_UI_Messages" class="S3_UI_Messages">
+        <div id="Filepick_UI_Header" class="Filepick_UI_Header">
+            <h2>Choose a file or directory for download or upload.</h2>
+            <div id="S3_UI_Messages" class="S3_UI_Messages"></div>
+            <div id="S3_UI_NavBar" class="S3_UI_NavBar"><button id="Home_0_nav_btn" onclick="s3NavButton(0, '')"><img src="graphics/OpenDirIconCC.svg" width="24" height="24">Home</button></div>
         </div>
-        <div id="S3_Filepick_UI" class="S3_Filebrowser_UI">
-        </div>
+        <div id="S3_Filepick_UI" class="S3_Filebrowser_UI"></div>
     </div>
 </body>
 </html>

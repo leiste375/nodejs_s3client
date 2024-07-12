@@ -27,22 +27,23 @@ body {
 .login_form button, .s3_form button {
     display: block;
     margin: 20px auto 0 auto;
-    background: var(--dark-green);
+    background: var(--light-green);
     border-radius: 4px;
     border: none;
     color: white;
     padding: 4px 4px 4px 4px;
+    font-size: 14px;
 }
 .login_form button:hover, .s3_form button:hover {
     box-shadow: 0 0 3px 2px var(--dark-green);
-    transition: .2s;
+    transition: .1s;
 }
 .login_form input, .s3_form input[type=text] {
     box-shadow: 0 0 2px 2px var(--grey-5);
     border-radius: 2px;
     border: none;
 }
-.login_form input:hover, .s3_form input[type=text]:hover, .S3_Filebrowser_UI button:hover {
+.login_form input:hover, .s3_form input[type=text]:hover {
     box-shadow: 0 0 1px 2px var(--light-green);
     transition: .4s;
 }
@@ -86,7 +87,37 @@ input:focus {outline:none;}
     line-height: 1.2em;
     max-height: 85px;
 }
-.S3_Filebrowser_UI button:hover {
-    transition: .2s !important;
+.Filepick_UI_Header {
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: auto;
+    text-align: center;
 }
-
+.S3_UI_NavBar, .S3_UI_Messages {
+    align-self: flex-start;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    margin: -10px auto auto auto;
+    flex-wrap: wrap;
+}
+.S3_UI_NavBar button, .S3_UI_Messages p {
+    margin-left: 10%;
+}
+.S3_UI_NavBar button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    background: var(--light-green);
+    color: white;
+}
+.S3_UI_NavBar img {
+    margin-right: .25em;
+}
+.S3_Filebrowser_UI button:hover:not(:focus) {
+    box-shadow: 0 0 1px 2px var(--light-green);
+    transition: .2s;
+}
