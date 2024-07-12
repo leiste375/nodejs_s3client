@@ -2,15 +2,36 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const https = require('https');
+//const https = require('https');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 //const htmlParser = require('node-html-parser').parse;
 const { S3Client, GetObjectCommand, PutObjectCommand, paginateListObjectsV2 } = require('@aws-sdk/client-s3');
 const app = express();
-const PORT = process.env.PORT || 3000;
 require('dotenv').config();
+
+//Custom http requestHandler for S3 API calls.
+const { NodeHttpHandler } = require('@smithy/node-http-handler');
+const LdapAuthenticator = require('./ldap');
+const httpHandler = new NodeHttpHandler({
+});
+
+//Configure webserver
+const PORT = process.env.PORT || 3000;
+const HTTPS_ENABLED = process.env.HTTPS_ENABLED || false;
+if (HTTPS_ENABLED == 'false') {
+    http = require('http');
+    //Disable SSL for all S3 API calls for testing purposes. Set via NODE_TLS_REJECT_UNAUTHORIZED in .env
+    httpHandler.sslAgent = new http.Agent({
+        rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0'
+    });
+} else {
+    https = require('https');
+    httpHandler.sslAgent = new https.Agent({
+        rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0'
+    });
+}
 
 //Setup for express app below
 //Handle CORS & enable request from OpenSpecimen Server for cross-site requests.
@@ -28,31 +49,24 @@ app.use(express.static(path.join(__dirname, '/public')));
 
 // Use sessions to track logged-in users
 app.use(cookieParser());
+if (process.env.HTTPS_PROXY == true && process.env.HTTPS_ENABLED == 'false') {
+    console.log('Server requires Proxy to work');
+    app.set('trust proxy', 1);
+}
 app.use(session({
     secret: process.env.COOKIE_SECRET_HASH,
     resave: false,
-    credentials: true,
+    //credentials: true,
     //Allow partitioned cookies for external pages.
     partitioned: true,
     saveUninitialized: true,
     cookie: {
-        secure: true,
-        //Set sameSite to None to avoid connect.sid warning observed in Firefox. Maybe Chromium?
+        secure: process.env.HTTPS_PROXY,
+        //Set sameSite to None to avoid connect.sid warning & allow cross-site requests.
         sameSite: 'None',
-        httpOnly: true,
+        httpOnly: process.env.HTTPS_PROXY,
     }
 }));
-
-//Custom http requestHandler for S3 API calls.
-const { NodeHttpHandler } = require('@smithy/node-http-handler');
-const LdapAuthenticator = require('./ldap');
-const httpHandler = new NodeHttpHandler({
-});
-
-//Disable SSL for all S3 API calls for testing purposes. Set via NODE_TLS_REJECT_UNAUTHORIZED in .env
-httpHandler.sslAgent = new https.Agent({
-    rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0'
-});
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -250,12 +264,16 @@ app.get('/filepicker2', handleLogin, async (req, res) => {
         console.error('Error while updating list:',e)
     }
 })
-
-const httpsOptions = {
-  key: fs.readFileSync(process.env.HTTPS_KEY),
-  cert: fs.readFileSync(process.env.HTTPS_CERT)
-};
-
-https.createServer(httpsOptions, app).listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+if (HTTPS_ENABLED == 'false') {
+    http.createServer(app).listen(PORT, () => {
+        console.log(`HTTP Server is running on port ${PORT}`)
+    });
+} else {
+    const httpsOptions = {
+      key: fs.readFileSync(process.env.HTTPS_KEY),
+      cert: fs.readFileSync(process.env.HTTPS_CERT)
+    };
+    https.createServer(httpsOptions, app).listen(PORT, () => {
+        console.log(`HTTPS Server is running on port ${PORT}`);
+    });
+}
