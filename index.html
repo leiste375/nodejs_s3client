@@ -115,6 +115,7 @@
                     if (targetLvl == 0) {
                         console.log('Going home')
                         dirLvl = targetLvl;
+                        document.getElementById('S3_Upload_Dir_Input') = '/';
                         s3InitializeUI(s3KeysGlobalVar);
                     } else {
                         dirLvl = targetLvl - 1;
