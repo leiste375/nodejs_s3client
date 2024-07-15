@@ -20,8 +20,11 @@ body {
     width: 50%;
     text-align: center;
 }
-.login_form label, .s3_form label {
+.login_form label {
     display: block;
+    margin: 10px 0 10px 0;
+}
+ .s3_form label {
     margin: 10px 0 10px 0;
 }
 .login_form button, .s3_form button {
@@ -54,6 +57,8 @@ input:focus {outline:none;}
     transition: .1s;
 }
 .s3_form {
+    display: flex;
+    flex-direction: column;
     width: 80%;
     margin:auto;
     text-align: center;

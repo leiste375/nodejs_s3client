@@ -233,6 +233,25 @@ app.get('/download', handleLogin, async (req, res) => {
     }
 });
 
+app.post('/delete', handleLogin, async (req, res) => {
+    try {
+        const array = req.query.deleteoobj;
+        if (!deleteobj) {
+            return res.status(400).send('File for deletion is required');
+        }
+
+        for (object in array) {
+            console.log(object);
+            const params = {
+                Bucket: process.env.S3_BUCKET_NAME,
+                Key: object,
+            }
+        }
+    } catch (e) {
+        res.status(500).send(e);
+    }
+});
+
 //Endpoint to serve a JSON of all available objects in storage. The first endpoint serves a previously downloaded JSON,
 //whereas the second endpoint will update the list. 
 app.get('/filepicker1', handleLogin, async (req, res) => {
