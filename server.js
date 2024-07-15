@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 //const htmlParser = require('node-html-parser').parse;
-const { S3Client, GetObjectCommand, PutObjectCommand, paginateListObjectsV2 } = require('@aws-sdk/client-s3');
+const { S3Client, GetObjectCommand, PutObjectCommand, paginateListObjectsV2, DeleteObjectCommand, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
 const app = express();
 require('dotenv').config();
 
@@ -233,21 +233,25 @@ app.get('/download', handleLogin, async (req, res) => {
     }
 });
 
+//Handle deletion of single and multiple objects. Expects an array.
 app.post('/delete', handleLogin, async (req, res) => {
     try {
-        const array = req.query.deleteoobj;
-        if (!deleteobj) {
+        const array = req.body.array;
+        if (!array) {
             return res.status(400).send('File for deletion is required');
+        } else {
+            console.log(array);
         }
-
-        for (object in array) {
-            console.log(object);
+        for ( let i = 0; i < array.length; i++ ) {
+            console.log(array[i]);
             const params = {
                 Bucket: process.env.S3_BUCKET_NAME,
-                Key: object,
+                Key: array[i],
             }
         }
+        return res.status(200).send('OK');
     } catch (e) {
+        console.log(e);
         res.status(500).send(e);
     }
 });

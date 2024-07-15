@@ -16,6 +16,7 @@ function fillS3Download(s3HTMLElement, s3Keys) {
     };
     traverseJson(s3Keys);
 };
+
 //Construct root directory in UI
 function s3InitializeUI(s3Keys) {
     const s3FilepickerUI = document.getElementById('S3_Filepick_UI');
@@ -40,34 +41,44 @@ function s3InitializeUI(s3Keys) {
             let button = document.createElement('button');
             button.id = `S3_Filepick_Btn_${s3ListRunningId}`;
             button.className = 'S3_Filepick_UI';
-            button.innerHTML = `<div class="S3_UI_Button_Inner"><img src=\"${IconSrc}\" width=\"32\" height=\"32\"><br>${dirName}</div>`;
+            button.innerHTML = `<div class="S3_UI_Button_Inner"><img src=\"${IconSrc}\"><br>${dirName}</div>`;
             s3FilepickerUI.appendChild(button);
             document.getElementById(`S3_Filepick_Btn_${s3ListRunningId}`).addEventListener( 'click', function(){ s3UIHandleButton(currentS3Key) } );
             s3ListRunningId += 1;
         }
     };
 };
+
+//Code to handle navigation and forward appropriate values to other function.
 function s3UIHandleButton(s3Key) {
     const uploadInput = document.getElementById('S3_Upload_Dir_Input');
-    const divUI = document.getElementById('S3_UI_Messages');
-    divUI.innerHTML = ''
+    const divUI = document.getElementById('S3_UI_NavBar');
+    //Ensure that no active messages remain in navigation bar.
+    const currentMessages = document.getElementById('S3_UI_Dir_Empty'); 
+    if (currentMessages) {
+        currentMessages.remove();
+    }
+    //Check if target is a file or a directory and act accordingly.
     const traverseJson = (s3Objects, s3Key) => {
         for (s3Object in s3Objects) {
             if (s3Objects[s3Object].hasOwnProperty('Key') && s3Objects[s3Object].Key == s3Key) {
                 if (Object.keys(s3Objects[s3Object]).length <= 2 && s3Objects[s3Object].Size == 0) {
-                    divUI.innerHTML += "<p>Directory empty.</p>";
+                    divUI.innerHTML += '<p id=\"S3_UI_Dir_Empty\">Directory empty.</p>';
                     uploadInput.value = s3Key;
+                    currentS3Target = s3Key;
                     return
                 } else if (Object.keys(s3Objects[s3Object]).length <= 2 && s3Objects[s3Object].Size > 0){
                     document.getElementById('S3_Filepick_Select').value = s3Key;
+                    currentS3Target = s3Key;
                     return
                 } else {
                     uploadInput.value = s3Key;
+                    currentS3Target = s3Objects[s3Object];
                     dirLvl += 1;
                     const currentLvl = dirLvl;
                     let navButton = document.createElement('button');
                     navButton.id = `${currentLvl}_nav_btn`;
-                    navButton.innerHTML = `<img src=\"graphics/OpenDirIconCC.svg\" width=\"24\" height=\"24\">${s3Key.split('/')[currentLvl - 1]}`;
+                    navButton.innerHTML = `<img src=\"graphics/OpenDirIconCC.svg\">${s3Key.split('/')[currentLvl - 1]}`;
                     document.getElementById('S3_UI_NavBar').appendChild(navButton);
                     document.getElementById(`${currentLvl}_nav_btn`).addEventListener( 'click', function(){ s3NavButton(currentLvl, s3Key) } );
                     s3InitializeUI(s3Objects[s3Object]);
@@ -80,6 +91,8 @@ function s3UIHandleButton(s3Key) {
     };
     traverseJson(s3KeysGlobalVar, s3Key);
 };
+
+//Code to handle click events in nav bar.
 function s3NavButton(targetLvl, s3Key) {
     if (targetLvl == dirLvl) {
         return;
@@ -91,16 +104,82 @@ function s3NavButton(targetLvl, s3Key) {
     if (targetLvl == 0) {
         dirLvl = targetLvl;
         document.getElementById('S3_Upload_Dir_Input').value = '/';
+        currentS3Target = '/';
         s3InitializeUI(s3KeysGlobalVar);
     } else {
         dirLvl = targetLvl - 1;
         s3UIHandleButton(s3Key);
     }
 }
+
+/*
 function s3HomeButton(targetLvl) {
     dirLvl = targetLvl;
     s3InitializeUI(s3KeysGlobalVar);
+}*/
+
+//Send array of keys back to server for S3 API calls.
+function sendS3Keys(targetUrl, s3Array) {
+    fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ array: s3Array })
+    })
+    .then(response => { 
+        if (response.ok) {
+            window.confirm('Deletion succesful');
+            //console.log(response);
+        } else {
+            console.log('Error while deleting objects.');
+        }
+    })
+    .catch(e => { 
+        window.alert(e) 
+    });
 }
+
+//Read all keys to send back to server to handle deletion of both directories and single files.
+function deleteObj() {
+    const deleteS3Keys = [];
+    const collectKeys = (s3Objects) => {
+        for (s3Object in s3Objects) {
+            if (s3Objects[s3Object].hasOwnProperty('Key') && (typeof s3Objects[s3Object].Key) == 'string') {
+                deleteS3Keys.push({ Key: s3Objects[s3Object].Key });
+            }
+            if (s3Objects[s3Object].hasOwnProperty('Size') && s3Objects[s3Object].Size == 0) {
+                collectKeys(s3Objects[s3Object]);
+            }
+        }
+    }
+    if ((typeof currentS3Target) == 'object') {
+        console.log(currentS3Target.Key);
+        if (window.confirm(`Are you sure you want to delete the entire contents of directory ${currentS3Target.Key}`)) {
+            deleteS3Keys.push({ Key: currentS3Target.Key });
+            collectKeys(currentS3Target);
+            sendS3Keys('/delete', deleteS3Keys);
+        } else {
+            return
+        }
+    } else if ((typeof currentS3Target) == 'string' && currentS3Target != '/') {
+        if (window.confirm(`Are you want to the delete ${currentS3Target}`)) {
+            deleteS3Keys.push({ Key: currentS3Target });
+            sendS3Keys('/delete', deleteS3Keys);
+        } else {
+            return
+        }
+    } else if (currentS3Target == '/') {
+        if (window.confirm(`ATTENTION. You are about to delete the entire storage! Are you sure?`)) {
+            collectKeys(s3KeysGlobalVar);
+            sendS3Keys('/delete', deleteS3Keys);
+        } else {
+            return
+        }
+    }
+}
+
+//Fetch static file list of storage & try to renew list of all objects.
 fetch('/filepicker1')
     .then(response => response.json())
     .then(s3Keys => {
