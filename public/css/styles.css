@@ -56,6 +56,9 @@ input:focus {outline:none;}
     box-shadow: 0 0 3px 3px var(--light-green);
     transition: .1s;
 }
+.s3_upload input[type=text] {
+    width:25%;
+}
 .s3_form {
     display: flex;
     flex-direction: column;
@@ -102,10 +105,10 @@ input:focus {outline:none;}
 }
 .S3_UI_NavBar, .S3_UI_Messages {
     align-self: flex-start;
-    width: 100%;
+    width: 80%;
     display: flex;
     justify-content: flex-start;
-    margin: -10px auto auto auto;
+    margin: auto;
     flex-wrap: wrap;
 }
 .S3_UI_NavBar button, .S3_UI_Messages p {
@@ -118,6 +121,7 @@ input:focus {outline:none;}
     font-size: 16px;
     background: var(--light-green);
     color: white;
+    margin: 0 0 0 2px;
 }
 .S3_UI_NavBar img {
     margin-right: .25em;

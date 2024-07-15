@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="s3_form">
-        <h2>Upload File to S3</h2>
+        <h3>Upload File to S3</h3>
         <div class="s3_upload">
             <form action="/upload" method="post" enctype="multipart/form-data">
                 <input type="file" name="file" required>
@@ -19,7 +19,7 @@
             </form>
         </div>
     <div class="s3_download">    
-        <h2>Download File from S3</h2>
+        <h3>Download File from S3</h3>
         <form action="/download" method="get">
             <label for="s3_filepicker">Choose a file:</label>
             <select id="S3_Filepick_Select" type="text" class="filename" name="filename" data-style="btn-info" placeholder="Choose object.">
@@ -28,7 +28,7 @@
         </form>
     </div>
     <div id="Filepick_UI_Header" class="Filepick_UI_Header">
-        <h2>Choose a file or directory for download or upload.</h2>
+        <h3>Choose object for download or upload above.</h3>
         <div id="S3_UI_Messages" class="S3_UI_Messages"></div>
         <div id="S3_UI_NavBar" class="S3_UI_NavBar"><button id="Home_0_nav_btn" onclick="s3NavButton(0, '')"><img src="graphics/OpenDirIconCC.svg" width="24" height="24">Home</button></div>
         </div>
