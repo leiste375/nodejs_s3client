@@ -243,7 +243,6 @@ app.post('/delete', handleLogin, async (req, res) => {
             console.log(array);
         }
         for ( let i = 0; i < array.length; i++ ) {
-            console.log(array[i]);
             const params = {
                 Bucket: process.env.S3_BUCKET_NAME,
                 Key: array[i],

@@ -177,3 +177,29 @@ input:focus {outline:none;}
     transition: .3s;
     transform: scale(1.25);
 }
+
+/*Simple CSS loading animation*/
+.loading {
+    margin: auto 10px auto auto;
+    border: 4px solid var(--dark-green);
+    border-radius: 50%;
+    border-top: 4px solid rgb(255 255 255 / 0);
+    width: 24px;
+    height: 24px;
+    animation: merry-go-round 1s cubic-bezier(0,0,0.6,0.75) infinite;
+    --_mask: 
+    conic-gradient(#0000 25%,#000),
+    linear-gradient(#000 0 0) content-box;
+    -webkit-mask: var(--_mask);
+    mask: var(--_mask);
+    -webkit-mask-composite: source-out;
+    mask-composite: subtract;
+}
+@keyframes merry-go-round {
+    0% { transform: 
+        rotate(0deg) 
+    }
+    100% { transform: 
+        rotate(360deg)
+    }
+}

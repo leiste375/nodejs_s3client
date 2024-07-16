@@ -1,3 +1,14 @@
+//Insert simple loading gif
+function insertLoading(htmlId) {
+    const htmlTarget = document.getElementById(htmlId);
+    htmlTarget.innerHTML += "<div id=\"loading\" class=\"loading\" order=\"1\"></div>"
+}
+function removeElementById(elementId) {
+    const loadingDiv = document.getElementById(elementId);
+    if (loadingDiv) {
+        loadingDiv.remove();
+    }
+}
 //Fill filepicker dropdown menu containing all files in S3 storage.
 function fillS3Download(s3HTMLElement, s3Keys) {
     const traverseJson = (s3objects) => {
@@ -54,10 +65,7 @@ function s3UIHandleButton(s3Key) {
     const uploadInput = document.getElementById('S3_Upload_Dir_Input');
     const divUI = document.getElementById('S3_UI_NavBar');
     //Ensure that no active messages remain in navigation bar.
-    const currentMessages = document.getElementById('S3_UI_Dir_Empty'); 
-    if (currentMessages) {
-        currentMessages.remove();
-    }
+    removeElementById('S3_UI_Dir_Empty');
     //Check if target is a file or a directory and act accordingly.
     const traverseJson = (s3Objects, s3Key) => {
         for (s3Object in s3Objects) {
@@ -99,7 +107,7 @@ function s3NavButton(targetLvl, s3Key) {
     }
     for (let i = dirLvl; i >= targetLvl && i != 0; i--) {
         let navBtnString = `${i}_nav_btn`;
-        document.getElementById(navBtnString).remove();
+        removeElementById(navBtnString);
     }
     if (targetLvl == 0) {
         dirLvl = targetLvl;
@@ -111,12 +119,6 @@ function s3NavButton(targetLvl, s3Key) {
         s3UIHandleButton(s3Key);
     }
 }
-
-/*
-function s3HomeButton(targetLvl) {
-    dirLvl = targetLvl;
-    s3InitializeUI(s3KeysGlobalVar);
-}*/
 
 //Send array of keys back to server for S3 API calls.
 function sendS3Keys(targetUrl, s3Array) {
@@ -130,6 +132,7 @@ function sendS3Keys(targetUrl, s3Array) {
     .then(response => { 
         if (response.ok) {
             window.confirm('Deletion succesful');
+            removeElementById('loading');
             //console.log(response);
         } else {
             console.log('Error while deleting objects.');
@@ -156,6 +159,7 @@ function deleteObj() {
     if ((typeof currentS3Target) == 'object') {
         console.log(currentS3Target.Key);
         if (window.confirm(`Are you sure you want to delete the entire contents of directory ${currentS3Target.Key}`)) {
+            insertLoading('S3_Functions');
             deleteS3Keys.push({ Key: currentS3Target.Key });
             collectKeys(currentS3Target);
             sendS3Keys('/delete', deleteS3Keys);
@@ -164,6 +168,7 @@ function deleteObj() {
         }
     } else if ((typeof currentS3Target) == 'string' && currentS3Target != '/') {
         if (window.confirm(`Are you want to the delete ${currentS3Target}`)) {
+            insertLoading('S3_Functions');
             deleteS3Keys.push({ Key: currentS3Target });
             sendS3Keys('/delete', deleteS3Keys);
         } else {
@@ -171,6 +176,7 @@ function deleteObj() {
         }
     } else if (currentS3Target == '/') {
         if (window.confirm(`ATTENTION. You are about to delete the entire storage! Are you sure?`)) {
+            insertLoading('S3_Functions');
             collectKeys(s3KeysGlobalVar);
             sendS3Keys('/delete', deleteS3Keys);
         } else {
@@ -185,20 +191,21 @@ fetch('/filepicker1')
     .then(s3Keys => {
         s3KeysGlobalVar = s3Keys;
         dirLvl = 0;
+        currentS3Target = '/';
         const filepickDropdown = document.getElementById('S3_Filepick_Select');
         fillS3Download(filepickDropdown, s3KeysGlobalVar);
         s3InitializeUI(s3KeysGlobalVar);
     })
     .catch(e => console.error('Error fetching data:',e));
+//loadingGif('S3_UI_NavBar');
 fetch('/filepicker2')
     .then(response => response.json())
     .then(currentS3Keys => {
         s3KeysGlobalVar = currentS3Keys;
-        dirLvl = 0;
         const filepickDropdown = document.getElementById('S3_Filepick_Select');
         filepickDropdown.innerHTML = '';
         fillS3Download(filepickDropdown, s3KeysGlobalVar);
-        s3InitializeUI(s3KeysGlobalVar);
+        removeElementById('loading');
     })
     .catch(e => {
         console.error('Error updating S3 object list:',e);
