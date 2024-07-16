@@ -241,15 +241,25 @@ app.post('/delete', handleLogin, async (req, res) => {
         if (!array) {
             return res.status(400).send('File for deletion is required');
         } else {
-            console.log(array);
-        }
-        for ( let i = 0; i < array.length; i++ ) {
-            const params = {
-                Bucket: process.env.S3_BUCKET_NAME,
-                Key: array[i],
+            if (array.length == 1) {
+                const params = {
+                    Bucket: process.env.S3_BUCKET_NAME,
+                    Key: array[0].Key,
+                }
+                const command = new DeleteObjectCommand(params);
+                await s3Client.send(command);
+            } else {
+                const params = {
+                    Bucket: process.env.S3_BUCKET_NAME,
+                    Delete: {
+                        Objects: array,
+                    }
+                }
+                const command = new DeleteObjectsCommand(params);
+                await s3Client.send(command)
             }
+            return res.status(200).send('OK');
         }
-        return res.status(200).send('OK');
     } catch (e) {
         console.log(e);
         res.status(500).send(e);

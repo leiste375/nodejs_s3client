@@ -141,6 +141,7 @@ function sendS3Keys(targetUrl, s3Array) {
     })
     .then(response => { 
         if (response.ok) {
+            renewList();
             window.confirm('Deletion succesful');
             removeElementById('loading');
             //console.log(response);
@@ -196,27 +197,34 @@ function deleteObj() {
 }
 
 //Fetch static file list of storage & try to renew list of all objects.
-fetch('/filepicker1')
-    .then(response => response.json())
-    .then(s3Keys => {
-        s3KeysGlobalVar = s3Keys;
-        dirLvl = 0;
-        currentS3Target = '/';
-        const filepickDropdown = document.getElementById('S3_Filepick_Select');
-        fillS3Download(filepickDropdown, s3KeysGlobalVar);
-        s3InitializeUI(s3KeysGlobalVar);
-    })
-    .catch(e => console.error('Error fetching data:',e));
-//loadingGif('S3_UI_NavBar');
-fetch('/filepicker2')
-    .then(response => response.json())
-    .then(currentS3Keys => {
-        s3KeysGlobalVar = currentS3Keys;
-        const filepickDropdown = document.getElementById('S3_Filepick_Select');
-        filepickDropdown.innerHTML = '';
-        fillS3Download(filepickDropdown, s3KeysGlobalVar);
-        removeElementById('loading');
-    })
-    .catch(e => {
-        console.error('Error updating S3 object list:',e);
-    })
+function loadExisting() {
+    fetch('/filepicker1')
+        .then(response => response.json())
+        .then(s3Keys => {
+            s3KeysGlobalVar = s3Keys;
+            dirLvl = 0;
+            currentS3Target = '/';
+            const filepickDropdown = document.getElementById('S3_Filepick_Select');
+            fillS3Download(filepickDropdown, s3KeysGlobalVar);
+            s3InitializeUI(s3KeysGlobalVar);
+        })
+        .catch(e => console.error('Error fetching data:',e));
+}
+
+function renewList() {
+    fetch('/filepicker2')
+        .then(response => response.json())
+        .then(currentS3Keys => {
+            s3KeysGlobalVar = currentS3Keys;
+            const filepickDropdown = document.getElementById('S3_Filepick_Select');
+            filepickDropdown.innerHTML = '';
+            fillS3Download(filepickDropdown, s3KeysGlobalVar);
+            removeElementById('loading');
+        })
+        .catch(e => {
+            console.error('Error updating S3 object list:',e);
+        })
+}
+
+loadExisting();
+renewList();
