@@ -30,6 +30,7 @@ function fillS3Download(s3HTMLElement, s3Keys) {
     option.value = '';
     option.text = 'Please select file';
     s3HTMLElement.appendChild(option);
+    s3HTMLElement.value = '';
 };
 
 //Construct directory in UI
@@ -119,9 +120,8 @@ function s3UIHandleButton(s3Key) {
 
 //Code to handle click events in nav bar.
 function s3NavButton(targetLvl, s3Object) {
-    console.log(s3Object);
+    document.getElementById('S3_Filepick_Select').value = '';
     if (targetLvl == dirLvl) {
-        document.getElementById('S3_Filepick_Select').value = '';
         currentS3Target = s3Object;
         return;
     }
