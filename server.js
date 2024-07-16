@@ -105,15 +105,16 @@ function S3DirStructure(s3ObjList) {
         //Split Key string and loop through resulting list.
         var path = s3Entry.Key.split("/").filter(part => part !== '');
         let runningJson = finalJson;
+        //Handle object keys starting with a slash
+        if (s3Entry.Key.startsWith('/')) {
+            path[0] = `/${path[0]}`;
+        }
         path.forEach((part, index) => {
+            //Assign entry to last part of the path or create new array if applicable. 
             if (index == path.length - 1) {
-                if (s3Entry.Size == 0) {
-                    runningJson[part] = s3Entry;
-                } else {
-                    runningJson[part] = s3Entry;
-                };
+                runningJson[part] = s3Entry;
             } else if (!runningJson[part]) {
-                runningJson[part] = [];
+                runningJson[part] = {};
             }
             runningJson = runningJson[part];
         });
@@ -277,7 +278,6 @@ app.get('/filepicker1', handleLogin, async (req, res) => {
 app.get('/filepicker2', handleLogin, async (req, res) => {
     try {
         currentS3List = await S3ObjectList(s3Client);
-        //console.log(currentS3List);
         const jsonDataNew = JSON.parse(currentS3List);
         const jsonFilteredNew = jsonDataNew.Contents.map(item => ({ Key: item.Key, Size: item.Size }));
         const finalListNew = S3DirStructure(jsonFilteredNew);

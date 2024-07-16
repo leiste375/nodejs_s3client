@@ -1,7 +1,7 @@
 //Insert simple loading gif
 function insertLoading(htmlId) {
     const htmlTarget = document.getElementById(htmlId);
-    htmlTarget.innerHTML += "<div id=\"loading\" class=\"loading\" order=\"1\"></div>"
+    htmlTarget.insertAdjacentHTML('beforeend', '<div id=\"loading\" class=\"loading\" order=\"1\"></div>')
 }
 function removeElementById(elementId) {
     const loadingDiv = document.getElementById(elementId);
@@ -30,6 +30,7 @@ function fillS3Download(s3HTMLElement, s3Keys) {
 
 //Construct root directory in UI
 function s3InitializeUI(s3Keys) {
+    console.log(s3Keys);
     const s3FilepickerUI = document.getElementById('S3_Filepick_UI');
     s3FilepickerUI.innerHTML = '';
     var s3ListRunningId = 0;
@@ -39,7 +40,11 @@ function s3InitializeUI(s3Keys) {
             let dirName;
             let currentS3Key = s3Keys[s3Entry].Key;
             //Pretty names
-            dirName = currentS3Key.split('/')[dirLvl];
+            if (dirLvl == 0 && currentS3Key.startsWith('/')) {
+                dirName = `/${currentS3Key.split('/')[1]}`;
+            } else {
+                dirName = currentS3Key.split('/')[dirLvl];
+            }
             if (dirName.endsWith('/')) {
                 dirName = dirName.slice(0, -1);
             }
@@ -71,7 +76,7 @@ function s3UIHandleButton(s3Key) {
         for (s3Object in s3Objects) {
             if (s3Objects[s3Object].hasOwnProperty('Key') && s3Objects[s3Object].Key == s3Key) {
                 if (Object.keys(s3Objects[s3Object]).length <= 2 && s3Objects[s3Object].Size == 0) {
-                    divUI.innerHTML += '<p id=\"S3_UI_Dir_Empty\">Directory empty.</p>';
+                    divUI.insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Dir_Empty\">Directory empty.</p>');
                     uploadInput.value = s3Key;
                     currentS3Target = s3Key;
                     return
@@ -86,7 +91,12 @@ function s3UIHandleButton(s3Key) {
                     const currentLvl = dirLvl;
                     let navButton = document.createElement('button');
                     navButton.id = `${currentLvl}_nav_btn`;
-                    navButton.innerHTML = `<img src=\"graphics/OpenDirIconCC.svg\">${s3Key.split('/')[currentLvl - 1]}`;
+                    if (dirLvl == 1 && s3Key.startsWith('/')) {
+                        navButtonText = `/${s3Key.split('/')[currentLvl]}`
+                    } else {
+                        navButtonText = s3Key.split('/')[currentLvl - 1];
+                    }
+                    navButton.innerHTML = `<img src=\"graphics/OpenDirIconCC.svg\">${navButtonText}`;
                     document.getElementById('S3_UI_NavBar').appendChild(navButton);
                     document.getElementById(`${currentLvl}_nav_btn`).addEventListener( 'click', function(){ s3NavButton(currentLvl, s3Key) } );
                     s3InitializeUI(s3Objects[s3Object]);
