@@ -93,6 +93,7 @@ function s3UIHandleButton(s3Key) {
                     uploadInput.value = s3Key;
                     filepickInput.value = '';
                     currentS3Target = s3Objects[s3Object];
+                    const buttonTarget = s3Objects[s3Object];
                     dirLvl += 1;
                     const currentLvl = dirLvl;
                     let navButton = document.createElement('button');
@@ -104,7 +105,7 @@ function s3UIHandleButton(s3Key) {
                     }
                     navButton.innerHTML = `<img src=\"graphics/OpenDirIconCC.svg\">${navButtonText}`;
                     document.getElementById('S3_UI_NavBar').appendChild(navButton);
-                    document.getElementById(`${currentLvl}_nav_btn`).addEventListener( 'click', function(){ s3NavButton(currentLvl, s3Key) } );
+                    document.getElementById(`${currentLvl}_nav_btn`).addEventListener( 'click', function(){ s3NavButton(currentLvl, buttonTarget) } );
                     s3InitializeUI(s3Objects[s3Object]);
                     return
                 }
@@ -117,11 +118,11 @@ function s3UIHandleButton(s3Key) {
 };
 
 //Code to handle click events in nav bar.
-function s3NavButton(targetLvl, s3Key) {
+function s3NavButton(targetLvl, s3Object) {
+    console.log(s3Object);
     if (targetLvl == dirLvl) {
         document.getElementById('S3_Filepick_Select').value = '';
-        //This deletes the directory but not its subdirectories.
-        currentS3Target = s3Key;
+        currentS3Target = s3Object;
         return;
     }
     for (let i = dirLvl; i >= targetLvl && i != 0; i--) {
@@ -135,7 +136,8 @@ function s3NavButton(targetLvl, s3Key) {
         s3InitializeUI(s3KeysGlobalVar);
     } else {
         dirLvl = targetLvl - 1;
-        s3UIHandleButton(s3Key);
+        console.log(s3Object.Key);
+        s3UIHandleButton(s3Object.Key);
     }
 }
 
