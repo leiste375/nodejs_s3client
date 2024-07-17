@@ -1,7 +1,6 @@
 //Insert simple loading gif
 function insertLoading(htmlId) {
-    const htmlTarget = document.getElementById(htmlId);
-    htmlTarget.insertAdjacentHTML('beforeend', '<div id=\"loading\" class=\"loading\" order=\"1\"></div>')
+    document.getElementById(htmlId).insertAdjacentHTML('beforeend', '<div id=\"loading\" class=\"loading\" order=\"1\"></div>')
 }
 function removeElementById(elementId) {
     const loadingDiv = document.getElementById(elementId);
@@ -81,7 +80,6 @@ function s3InitializeUI(s3Keys) {
 function s3UIHandleButton(s3Key) {
     const uploadInput = document.getElementById('S3_Upload_Dir_Input');
     const filepickInput = document.getElementById('S3_Filepick_Select');
-    const divUI = document.getElementById('S3_UI_NavBar');
     //Ensure that no active messages remain in navigation bar.
     removeElementById('S3_UI_Msg');
     //Check if target is a file or a directory and act accordingly.
@@ -89,7 +87,7 @@ function s3UIHandleButton(s3Key) {
         for (s3Object in s3Objects) {
             if (s3Objects[s3Object].hasOwnProperty('Key') && s3Objects[s3Object].Key == s3Key) {
                 if (Object.keys(s3Objects[s3Object]).length <= 2 && s3Objects[s3Object].Size == 0) {
-                    divUI.insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Directory empty.</p>');
+                    document.getElementById('S3_UI_NavBar').insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Directory empty.</p>');
                     uploadInput.value = s3Key;
                     filepickInput.value = '';
                     currentS3Target = s3Key;
@@ -146,7 +144,6 @@ function s3NavButton(targetLvl, s3Object) {
     if (targetLvl == 0) {
         dirLvl = targetLvl;
         document.getElementById('S3_Upload_Dir_Input').value = '';
-        console.log('Setting target');
         s3InitializeUI(s3KeysGlobalVar);
     } else {
         dirLvl = targetLvl - 1;
@@ -180,8 +177,7 @@ function sendS3Keys(targetUrl, s3Array) {
 //Read all keys to send back to server to handle deletion of both directories and single files.
 function deleteObj() {
     if (currentS3Target === null) {
-        const divUI = document.getElementById('S3_UI_NavBar');
-        divUI.insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Please select an object for deletion.</p>')
+        document.getElementById('S3_UI_NavBar').insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Please select an object for deletion.</p>')
         return
     }
     const deleteS3Keys = [];
@@ -223,6 +219,36 @@ function deleteObj() {
             return
         }
     }
+}
+
+function addDir() {
+    const newdir = document.getElementById('S3_Upload_Dir_Input').value;
+    if (newdir == '') {
+        removeElementById('S3_UI_Msg');
+        document.getElementById('S3_UI_NavBar').insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Please select a directory.</p>');
+        return
+    }
+    console.log(newdir);
+    insertLoading('S3_Functions');
+    fetch('/createdir', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain'
+    },
+    body: newdir
+    })
+    .then(response => { 
+        if (response.ok) {
+            renewList();
+            window.confirm('Succesfully created directory.');
+            removeElementById('loading');
+        } else {
+            console.log('Error while creating directory.');
+        }
+    })
+    .catch(e => { 
+        window.alert(e) 
+    });
 }
 
 //Fetch static file list of storage & try to renew list of all objects.

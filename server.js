@@ -128,6 +128,16 @@ function S3DirStructure(s3ObjList) {
     return finalJson;
 };
 
+function handleDir(dirKey) {
+    if (!dirKey.endsWith('/')) {
+        dirKey +='/';
+    }
+    if (dirKey.startsWith('/')) {
+        dirKey = filedir.slice(1);
+    }
+    return dirKey
+};
+
 //Simple function to check if users are logged in.
 function handleLogin(req, res, next) {
     if (!req.session.user) {
@@ -186,19 +196,14 @@ app.get('/logout', (req, res) => {
   res.redirect('/login');
 });
 
+//ToDo: Possibly replace with lib-storage for multipart uploads? https://www.npmjs.com/package/@aws-sdk/lib-storage
 app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
     try {
         let filedir = String(req.body.filedir);
+        filedir = handleDir(filedir);
         const filename = req.file.originalname;
-
-        if (!filedir.endsWith('/')) {
-            filedir +='/';
-        }
-        if (filedir.startsWith('/')) {
-            filedir = filedir.slice(1);
-        }
-
         const s3_key = filedir.concat(filename);
+
         const params = {
             Bucket: process.env.S3_BUCKET_NAME,
             Key: s3_key,
@@ -209,6 +214,26 @@ app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
         res.send('File uploaded successfully!');
     } catch (e) {
         console.log(e)
+        res.status(500).send(e.message);
+    }
+});
+
+//Use express.text() to handle MIME type 'text/plain'
+app.use('/createdir', express.text());
+app.post('/createdir', handleLogin, async(req, res) => {
+    try {
+        let newdir = req.body;
+        newdir = handleDir(newdir);
+
+        const params = {
+            Bucket: process.env.S3_BUCKET_NAME,
+            Key: newdir,
+        };
+        const command = new PutObjectCommand(params);
+        await s3Client.send(command);
+        res.send('Directory created succesfully!');
+    } catch (e) {
+        console.log(e);
         res.status(500).send(e.message);
     }
 });
