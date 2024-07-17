@@ -9,6 +9,13 @@ function removeElementById(elementId) {
         loadingDiv.remove();
     }
 }
+
+//If click on non-interactive element, clear everything. Tied to "background" class. 
+function clearTarget() {
+    currentS3Target = null;
+    document.getElementById('S3_Filepick_Select').value = '';
+    document.getElementById('S3_Upload_Dir_Input').value = '';
+}
 //Fill filepicker dropdown menu containing all files in S3 storage.
 function fillS3Download(s3HTMLElement, s3Keys) {
     const traverseJson = (s3objects) => {
@@ -26,6 +33,7 @@ function fillS3Download(s3HTMLElement, s3Keys) {
         }
     };
     traverseJson(s3Keys);
+    //Insert empty value as a placeholder.
     const option = document.createElement('option');
     option.value = '';
     option.text = 'Please select file';
@@ -69,19 +77,19 @@ function s3InitializeUI(s3Keys) {
     };
 };
 
-//Code to handle navigation and forward appropriate values to other function.
+//Code to handle navigation and forward appropriate values to other functions.
 function s3UIHandleButton(s3Key) {
     const uploadInput = document.getElementById('S3_Upload_Dir_Input');
     const filepickInput = document.getElementById('S3_Filepick_Select');
     const divUI = document.getElementById('S3_UI_NavBar');
     //Ensure that no active messages remain in navigation bar.
-    removeElementById('S3_UI_Dir_Empty');
+    removeElementById('S3_UI_Msg');
     //Check if target is a file or a directory and act accordingly.
     const traverseJson = (s3Objects, s3Key) => {
         for (s3Object in s3Objects) {
             if (s3Objects[s3Object].hasOwnProperty('Key') && s3Objects[s3Object].Key == s3Key) {
                 if (Object.keys(s3Objects[s3Object]).length <= 2 && s3Objects[s3Object].Size == 0) {
-                    divUI.insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Dir_Empty\">Directory empty.</p>');
+                    divUI.insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Directory empty.</p>');
                     uploadInput.value = s3Key;
                     filepickInput.value = '';
                     currentS3Target = s3Key;
@@ -93,7 +101,6 @@ function s3UIHandleButton(s3Key) {
                 } else {
                     uploadInput.value = s3Key;
                     filepickInput.value = '';
-                    currentS3Target = s3Objects[s3Object];
                     const buttonTarget = s3Objects[s3Object];
                     dirLvl += 1;
                     const currentLvl = dirLvl;
@@ -120,9 +127,16 @@ function s3UIHandleButton(s3Key) {
 
 //Code to handle click events in nav bar.
 function s3NavButton(targetLvl, s3Object) {
+    removeElementById('S3_UI_Msg');
     document.getElementById('S3_Filepick_Select').value = '';
     if (targetLvl == dirLvl) {
-        currentS3Target = s3Object;
+        //Check if we're home
+        if (s3Object === '') {
+            currentS3Target = '/';
+        } else {
+            document.getElementById('S3_Upload_Dir_Input').value = s3Object.Key;
+            currentS3Target = s3Object;
+        }
         return;
     }
     for (let i = dirLvl; i >= targetLvl && i != 0; i--) {
@@ -132,11 +146,10 @@ function s3NavButton(targetLvl, s3Object) {
     if (targetLvl == 0) {
         dirLvl = targetLvl;
         document.getElementById('S3_Upload_Dir_Input').value = '';
-        currentS3Target = '';
+        console.log('Setting target');
         s3InitializeUI(s3KeysGlobalVar);
     } else {
         dirLvl = targetLvl - 1;
-        console.log(s3Object.Key);
         s3UIHandleButton(s3Object.Key);
     }
 }
@@ -166,11 +179,15 @@ function sendS3Keys(targetUrl, s3Array) {
 
 //Read all keys to send back to server to handle deletion of both directories and single files.
 function deleteObj() {
+    if (currentS3Target === null) {
+        const divUI = document.getElementById('S3_UI_NavBar');
+        divUI.insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Please select an object for deletion.</p>')
+        return
+    }
     const deleteS3Keys = [];
     const collectKeys = (s3Objects) => {
         for (s3Object in s3Objects) {
             if (s3Objects[s3Object].hasOwnProperty('Key') && (typeof s3Objects[s3Object].Key) == 'string') {
-                console.log('I\'m here');
                 deleteS3Keys.push({ Key: s3Objects[s3Object].Key });
             }
             if (s3Objects[s3Object].hasOwnProperty('Size') && s3Objects[s3Object].Size == 0) {
@@ -179,7 +196,6 @@ function deleteObj() {
         }
     }
     if ((typeof currentS3Target) == 'object') {
-        console.log(currentS3Target.Key);
         if (window.confirm(`Are you sure you want to delete the entire contents of directory ${currentS3Target.Key}`)) {
             insertLoading('S3_Functions');
             deleteS3Keys.push({ Key: currentS3Target.Key });
@@ -216,7 +232,7 @@ function loadExisting() {
         .then(s3Keys => {
             s3KeysGlobalVar = s3Keys;
             dirLvl = 0;
-            currentS3Target = '/';
+            currentS3Target = null;
             const filepickDropdown = document.getElementById('S3_Filepick_Select');
             fillS3Download(filepickDropdown, s3KeysGlobalVar);
             s3InitializeUI(s3KeysGlobalVar);
