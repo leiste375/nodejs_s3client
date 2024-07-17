@@ -27,7 +27,7 @@ body {
     background-color: rgba(255, 255, 255, 0);
     text-align: center;
 }
-button, input, select, label, h1, h2, h3 {
+button, input, select, label, h1, h2, h3, p, .Filepick_UI_Header {
     position: relative;
     z-index: 2
 }
@@ -146,6 +146,7 @@ input:focus {outline:none;}
     flex-wrap: wrap;
     align-items: flex-start;
     align-self: flex-start;
+    flex-shrink: 0;
 }
 .S3_UI_NavBar button {
     margin: 0 0 10px 2px;
@@ -176,17 +177,21 @@ input:focus {outline:none;}
 }
 .S3_Functions {
     display: flex;
-    /*flex-shrink: 0;*/
     flex-wrap: wrap;
     justify-content: flex-end;
-    /*margin: 0 0 auto 0;*/
 }
-.S3_Upload, .S3_Create_Dir {
+.S3_Upload, .S3_Create_Dir, .S3_Download {
     width: 100%;
     order: 99;
     margin-top: 10px;
     display: flex;
     justify-content: flex-end;
+}
+.S3_Download select {
+    max-width: 70%;
+}
+.S3_Upload button {
+    margin-left: 10px;
 }
 .S3_Function_Buttons {
     width: 100%;

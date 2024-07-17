@@ -252,7 +252,7 @@ app.get('/download', handleLogin, async (req, res) => {
         const command = new GetObjectCommand(params);
         const data = await s3Client.send(command);
 
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${filename.split('/').slice(-1)}"`);
         res.setHeader('Content-Type', data.ContentType);
         data.Body.pipe(res);
     } catch (e) {
