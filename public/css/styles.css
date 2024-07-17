@@ -45,10 +45,12 @@ button, input, select, label, h1, h2, h3 {
 }
 .login_form button {
     display: block;
-
+}
+/*Margin set specifically for login form*/
+.login_form button {
+    margin: 20px auto 0 auto;
 }
 .login_form button, .s3_form button {
-    margin: 20px auto 0 auto;
     background: var(--light-green);
     border-radius: 4px;
     border: none;
@@ -75,7 +77,7 @@ input:focus {outline:none;}
     box-shadow: 0 0 3px 3px var(--light-green);
     transition: .1s;
 }
-.s3_upload input[type=text] {
+.S3_Upload input[type=text] {
     width:25%;
 }
 .s3_form h3 {
@@ -137,7 +139,7 @@ input:focus {outline:none;}
     width: 90%;
 }
 .S3_UI_NavBar {
-    width: 100%;
+    width: 60%;
     max-width: 1200px;
     display: flex;
     justify-content: flex-start;
@@ -174,9 +176,23 @@ input:focus {outline:none;}
 }
 .S3_Functions {
     display: flex;
-    flex-shrink: 0;
-    margin: 0 0 auto 0;
-} 
+    /*flex-shrink: 0;*/
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    /*margin: 0 0 auto 0;*/
+}
+.S3_Upload, .S3_Create_Dir {
+    width: 100%;
+    order: 99;
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+.S3_Function_Buttons {
+    width: 100%;
+    justify-content: flex-end;
+    display: flex;
+}
 .function_button {
     background: none !important;
     align-self: flex-end;

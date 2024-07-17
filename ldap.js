@@ -7,6 +7,7 @@ function LdapAuthenticator(url, baseDN, username, password) {
     const client = ldap.createClient({
       url: url
     });
+    client.on('error', e => console.log(e) );
     client.bind(`cn=${username},${baseDN}`, password, (err) => {
         client.unbind();
         if (err) {

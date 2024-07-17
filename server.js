@@ -133,7 +133,7 @@ function handleDir(dirKey) {
         dirKey +='/';
     }
     if (dirKey.startsWith('/')) {
-        dirKey = filedir.slice(1);
+        dirKey = dirKey.slice(1);
     }
     return dirKey
 };
@@ -180,13 +180,14 @@ app.post('/login', (req, res) => {
                 const returnTo = req.session.returnTo || '/';
                 delete req.session.returnTo;
                 res.status(200).redirect(returnTo);
-            /*} else {
+            } else {
                 console.log('Authentication failed: ', e);
-                res.status(401).send('Authentication failed');*/
+                res.status(401).send('Authentication failed');
             }
         })
-        //ldapjs always sends error upon unsuccesful authentication.
+        //ldapjs always sends error upon unsuccesful authentication against tested server.
         .catch((e) => {
+            console.log(e);
             res.status(400).send(`Please try again. Authentication failed: ${e}. Note that only "o_username" is currently supported for login.`);
         });
 });
