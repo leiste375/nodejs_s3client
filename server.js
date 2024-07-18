@@ -315,7 +315,6 @@ app.post('/delete', handleLogin, async (req, res) => {
         if (!array) {
             return res.status(400).send('File for deletion is required');
         }
-        //} else {
         if (array.length == 1) {
             const params = {
                 Bucket: process.env.S3_BUCKET_NAME,
@@ -343,21 +342,21 @@ app.post('/delete', handleLogin, async (req, res) => {
 //Endpoint to serve a JSON of all available objects in storage. The first endpoint serves a previously downloaded JSON,
 //whereas the second endpoint will update the list. 
 app.get('/filepicker1', handleLogin, async (req, res) => {
-    const S3ListPath = path.join(__dirname, '/downloads/s3ObjectList.json');
-    fs.readFile(S3ListPath, (e, data) => {
-        if (e) {
-            console.error('Error while reading file:',e);
-            return res.status(500).send(e.message);
-        }
-        try {
-            const jsonData = JSON.parse(data);
-            const jsonFiltered = jsonData.Contents.map(item => ({ Key: item.Key, Size: item.Size }));
-            finalList = S3DirStructure(jsonFiltered);
-            res.json(finalList);
-        } catch (e) {
-            console.error('Error while parsing json:',e);
-        }
-    })
+    const S3ListPath = path.join(__dirname, '/downloads/s3DirStructure.json');
+    if (!fs.existsSync(S3ListPath)) {
+        fs.writeFileSync(S3ListPath, '{}', { flag: 'w+' });
+    }
+    try {
+        fs.readFile(S3ListPath, 'utf-8', (e, s3List) => {
+            if (e) {
+                console.error('Error while reading file:',e);
+                return res.status(500).send(e.message);
+            }
+            res.json(JSON.parse(s3List));
+        });
+    } catch (e) {
+        res.status(500).send('Error while parsing json:',e);
+    }
 });
 app.get('/filepicker2', handleLogin, async (req, res) => {
     try {
