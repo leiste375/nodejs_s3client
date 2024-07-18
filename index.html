@@ -21,21 +21,27 @@
                 <div id="S3_Functions" class="S3_Functions">
                 <div id="S3_Function_Buttons" class="S3_Function_Buttons">
                     <div id="loading" class="loading" style="order: 1"></div>
-                    <button id="Upload_File" title="Upload file to current directory" class="function_button" style="order: 2" onclick="displayItemById('S3_Upload')"><img src="graphics/UploadIconCC.svg"></button>
+                    <button id="Upload_File" title="Upload file to current directory" class="function_button" style="order: 2" onclick="displayItemById('S3_Upload')"><img src="graphics/UploadFileCC.svg"></button>
                     <button id="Add_directory" title="Add folder to current directory" class="function_button" style="order: 3" onclick="displayItemById('S3_Create_Dir')" style="order: 3"><img src="graphics/AddDirIconCC.svg"></button>
                     <button id="Delete object" title="Delete object" class="function_button" onclick="deleteObj()" style="order: 4"><img src="graphics/DeleteModifiedGNULGPL.svg"></button>
                 </div>
-                <div id="S3_Upload" class="S3_Upload" style="display: none">
-                    <form action="/upload" method="post" enctype="multipart/form-data">
-                        <input type="file" name="file" required>
-                        <button type="submit">Upload</button>
-                    </form>
+                <div id="S3_Progress" class="S3_Progress" style="display: none">
+                    <progress id="S3_Upload_Progress_Bar" class="S3_Upload_Progress_Bar" max="100"></progress>
                 </div>
-                <div id="S3_Create_Dir" class="S3_Create_Dir" style="display: none">
-                    <input id="S3_Create_Dir_Input" type="text" name="newdir" required>
+                <div id="S3_Upload" class="S3_Upload S3_Function" style="display: none">
+                    <!--<form action="/upload" method="post" enctype="multipart/form-data">-->
+                        <div id="Input_File_Container" style="width: 100%">
+                            <input id="S3_Upload_Input" type="file" name="file" required>
+                        </div>
+                        <input id="S3_Upload_Filedir" type="text" name="filedir" placeholde="Enter target directory" required style="display: none">
+                        <button type="submit" onclick="uploadFile()">Upload</button>
+                    <!--</form>-->
+                </div>
+                <div id="S3_Create_Dir" class="S3_Create_Dir S3_Function" style="display: none">
+                    <input id="S3_Create_Dir_Input" type="text" name="newdir" placeholder="Please insert name">
                     <button type="submit" id="S3_Create_Dir_Submit" onclick="addDir()">New folder</button>
                 </div>
-                <div id="S3_Download" class="S3_Download" style="display: none">
+                <div id="S3_Download" class="S3_Download S3_Function" style="display: none">
                 <form action="/download" method="get">
                     <select id="S3_Filepick_Select" type="text" class="filename" name="filename" data-style="btn-info" placeholder="Choose object.">
                     </select>

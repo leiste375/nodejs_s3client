@@ -2,12 +2,13 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-//const https = require('https');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-//const htmlParser = require('node-html-parser').parse;
 const { S3Client, GetObjectCommand, PutObjectCommand, paginateListObjectsV2, DeleteObjectCommand, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
+const { Upload } = require("@aws-sdk/lib-storage");
+const {v4: uuidv4 } = require('uuid');
+const clients = {} //Store sessionIds
 const app = express();
 require('dotenv').config();
 
@@ -46,6 +47,7 @@ app.use(cors(corsOption));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '/public')));
+app.use(express.json());
 
 // Use sessions to track logged-in users
 app.use(cookieParser());
@@ -54,6 +56,7 @@ if (process.env.HTTPS_PROXY == true && process.env.HTTPS_ENABLED == 'false') {
     app.set('trust proxy', 1);
 }
 app.use(session({
+    genid: (req) => { return uuidv4(); },
     secret: process.env.COOKIE_SECRET_HASH,
     resave: false,
     //credentials: true,
@@ -85,7 +88,7 @@ const s3Client = new S3Client({
 //Async function to get list of objects in storage
 async function S3ObjectList(client) {
     const objList = [];
-    for await (const data of paginateListObjectsV2({ client }, { Bucket: 'mug-openspecimen' } )) {
+    for await (const data of paginateListObjectsV2({ client }, { Bucket: process.env.S3_BUCKET_NAME } )) {
         objList.push(...(data.Contents ?? []));
     }
     const s3Json = { Contents: objList };
@@ -197,9 +200,43 @@ app.get('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-//ToDo: Possibly replace with lib-storage for multipart uploads? https://www.npmjs.com/package/@aws-sdk/lib-storage
+//Stream progress updates back to client
+app.get('/progress', (req, res) => {
+    const sessionId = req.sessionID;
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    //Create new array if it doesn't exist
+    if (!clients[sessionId]) {
+        clients[sessionId] = [];
+    }
+    clients[sessionId].push(res);
+
+    //Close connection & remove uuid from array
+    req.on('close', () => {
+        clients[sessionId] = clients[sessionId].filter(client => client !== res);
+        if (clients[sessionId].length === 0) {
+            delete clients[sessionId];
+        }
+    });
+});
+const sendProgress = (sessionId, progress) => {
+    if (clients[sessionId]) {
+        const jsonProgress = JSON.stringify({ loaded: progress.loaded, total: progress.total})
+        clients[sessionId].forEach(client => client.write(`data: ${jsonProgress}\n\n`));
+    }
+}
+
 app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
     try {
+        const sessionId = req.sessionID;
+        if (!sessionId) {
+            res.status(500).send('Error processing session ID.');
+        } else {
+        }
+
         let filedir = String(req.body.filedir);
         filedir = handleDir(filedir);
         const filename = req.file.originalname;
@@ -210,11 +247,22 @@ app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
             Key: s3_key,
             Body: req.file.buffer,
         };
-        const command = new PutObjectCommand(params);
-        await s3Client.send(command);
-        res.send('File uploaded successfully!');
+        //const command = new PutObjectCommand(params);
+        //await s3Client.send(command);
+        const parallelUploads = new Upload({
+            client: s3Client,
+            params: params,
+            queueSize: 4,
+            partSize: 1024 * 1024 * 5,
+            leavePartsOnError: false,
+        });
+        parallelUploads.on('httpsUploadProgres', (progress) => {
+            sendProgress(sessionId, progress);
+        })
+
+        await parallelUploads.done();
+        res.status(200).send('File uploaded successfully!');
     } catch (e) {
-        console.log(e)
         res.status(500).send(e.message);
     }
 });
@@ -266,26 +314,26 @@ app.post('/delete', handleLogin, async (req, res) => {
         const array = req.body.array;
         if (!array) {
             return res.status(400).send('File for deletion is required');
-        } else {
-            if (array.length == 1) {
-                const params = {
-                    Bucket: process.env.S3_BUCKET_NAME,
-                    Key: array[0].Key,
-                }
-                const command = new DeleteObjectCommand(params);
-                await s3Client.send(command);
-            } else {
-                const params = {
-                    Bucket: process.env.S3_BUCKET_NAME,
-                    Delete: {
-                        Objects: array,
-                    }
-                }
-                const command = new DeleteObjectsCommand(params);
-                await s3Client.send(command)
-            }
-            return res.status(200).send('OK');
         }
+        //} else {
+        if (array.length == 1) {
+            const params = {
+                Bucket: process.env.S3_BUCKET_NAME,
+                Key: array[0].Key,
+            }
+            const command = new DeleteObjectCommand(params);
+            await s3Client.send(command);
+        } else {
+            const params = {
+                Bucket: process.env.S3_BUCKET_NAME,
+                Delete: {
+                    Objects: array,
+                }
+            }
+            const command = new DeleteObjectsCommand(params);
+            await s3Client.send(command)
+        }
+        return res.status(200).send('OK');
     } catch (e) {
         console.log(e);
         res.status(500).send(e);

@@ -54,6 +54,13 @@ function fillS3Download(s3HTMLElement, s3Keys) {
 
 //Construct directory in UI
 function s3InitializeUI(s3Keys) {
+    //Clean up functions menu
+    const functionDivs = document.getElementsByClassName('S3_Function');
+    for ( let div = 0; div < functionDivs.length; div++ ) {
+        if (functionDivs[div].style.display != 'none') {
+            displayItemById(functionDivs[div].id);
+        }
+    }
     const s3FilepickerUI = document.getElementById('S3_Filepick_UI');
     s3FilepickerUI.innerHTML = '';
     var s3ListRunningId = 0;
@@ -109,7 +116,7 @@ function s3UIHandleButton(s3Key) {
                     }
                     return
                 }
-                //Set variables and "open" directory.
+                //Set global variables.
                 uploadInput = s3Key;
                 filepickInput.value = '';
                 const buttonTarget = s3Objects[s3Object];
@@ -215,9 +222,8 @@ function deleteObj() {
         } else {
             return
         }
-    } else if ((typeof deleteS3Target) == 'string' && currentS3Target != '/') {
+    } else if ((typeof deleteS3Target) == 'string' && deleteS3Target != '/') {
         //Ensure that string is not a directory
-
         if (window.confirm(`Do you want to the delete ${deleteS3Target}`)) {
             insertLoading('S3_Function_Buttons');
             deleteS3Keys.push({ Key: deleteS3Target });
@@ -237,20 +243,20 @@ function deleteObj() {
 }
 
 function addDir() {
-    const newdir = uploadInput.concat(document.getElementById('S3_Create_Dir_Input').value);
-    if (newdir == '') {
+    const dirname = document.getElementById('S3_Create_Dir_Input').value;
+    if (dirname == '') {
         removeElementById('S3_UI_Msg');
         document.getElementById('S3_UI_NavBar').insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Please select a directory.</p>');
         return
     }
-    console.log(newdir);
+    const newdir = uploadInput.concat(dirname);
     insertLoading('S3_Function_Buttons');
     fetch('/createdir', {
         method: 'POST',
         headers: {
             'Content-Type': 'text/plain'
-    },
-    body: newdir
+        },
+        body: newdir
     })
     .then(response => { 
         if (response.ok) {
@@ -264,6 +270,54 @@ function addDir() {
     .catch(e => { 
         window.alert(e) 
     });
+}
+async function readProgress() {
+    
+}
+async function uploadFile() {
+    const targetDir = uploadInput;
+    const file = document.getElementById('S3_Upload_Input').files[0];
+    const filename = file.name;
+    if (!file) {
+        document.getElementById('S3_UI_NavBar').insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Please select a file.</p>');
+        return
+    }
+    insertLoading('S3_Function_Buttons');
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('filedir', targetDir);
+    
+    //Set up progress tracker. Tried XHR, didn't work with lib-storage.
+    const progressBar = document.getElementById('S3_Upload_Progress_Bar');
+    const eventSource = new EventSource(`/progress`);
+    eventSource.onmessage = (event) => {
+        const progress = JSON.parse(event.data);
+        progressBar.value = (progress.loaded / progress.total) * 100;
+    };
+    eventSource.onerror = (e) => {
+        window.alert('Unable to track progress: ', e);
+        eventSource.close();
+    };
+    displayItemById('S3_Progress');
+
+    //fetch request
+    try {
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+        });
+        const result = await response.json();
+        if (response.ok) {
+            window.confirm(`Succesfully uploaded ${filename}`);
+        };
+    } catch (e) {
+        window.alert(`Upload failed: ${e}`);
+    }
+    eventSource.close();
+    removeElementById('loading');
+    displayItemById('S3_Progress');
+    return
 }
 
 //Fetch static file list of storage & try to renew list of all objects.

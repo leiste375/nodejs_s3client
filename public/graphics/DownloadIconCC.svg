@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1"
+   viewBox="0 0 36 37.152542"
+   enable-background="new 0 0 48 48"
+   id="svg4"
+   sodipodi:docname="UploadIconCC.svg"
+   width="36"
+   height="37.152542"
+   inkscape:version="1.3 (0e150ed, 2023-07-21)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#999999"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="9.8333333"
+     inkscape:cx="30.254237"
+     inkscape:cy="31.830508"
+     inkscape:window-width="1920"
+     inkscape:window-height="1147"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g4" />
+  <g
+     fill="#1565c0"
+     id="g4"
+     transform="translate(-6,-6.8474574)">
+    <polygon
+       points="35,24 24,37.1 13,24 "
+       id="polygon1"
+       transform="translate(0,2.8474576)" />
+    <rect
+       x="20"
+       y="6.8474574"
+       width="8"
+       height="4"
+       id="rect1" />
+    <rect
+       x="20"
+       y="12.847458"
+       width="8"
+       height="4"
+       id="rect2" />
+    <rect
+       x="20"
+       y="18.847458"
+       width="8"
+       height="11"
+       id="rect3" />
+    <rect
+       x="6"
+       y="40"
+       width="36"
+       height="4"
+       id="rect4" />
+  </g>
+</svg>

@@ -27,12 +27,12 @@
      inkscape:zoom="7.3174831"
      inkscape:cx="22.343748"
      inkscape:cy="28.288415"
-     inkscape:window-width="1312"
-     inkscape:window-height="431"
+     inkscape:window-width="1920"
+     inkscape:window-height="1147"
      inkscape:window-x="0"
      inkscape:window-y="25"
-     inkscape:window-maximized="0"
-     inkscape:current-layer="svg2" />
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g2" />
   <g
      id="g2">
     <path
@@ -44,22 +44,32 @@
        d="M 36,4 H 4 C 1.8,4 0,5.8 0,8 v 20 c 0,2.2 1.8,4 4,4 h 32 c 2.2,0 4,-1.8 4,-4 V 8 C 40,5.8 38.2,4 36,4 Z"
        id="path2" />
     <g
-       id="g1"
-       transform="matrix(1.2551732,0,0,1.2551732,-13.198903,-11.037453)">
-      <rect
-         style="fill:#34b233;fill-opacity:1;stroke-width:0.695898;stroke-miterlimit:10;stroke-opacity:0"
-         id="rect1"
-         width="3"
-         height="15"
-         x="33.688404"
-         y="19.288059" />
-      <rect
-         style="fill:#34b233;fill-opacity:1;stroke-width:0.6959;stroke-miterlimit:10;stroke-opacity:0"
-         id="rect1-5"
-         width="15"
-         height="3"
-         x="27.383715"
-         y="25.288059" />
+       id="g3"
+       transform="matrix(1.2857143,0,0,1.2857143,-11.428572,-11.714286)">
+      <circle
+         fill="#4caf50"
+         cx="33"
+         cy="27"
+         r="7"
+         id="circle1-9"
+         style="stroke-width:0.333333" />
+      <g
+         fill="#ffffff"
+         id="g2-2"
+         transform="matrix(0.33333333,0,0,0.33333333,25.000001,19)">
+        <rect
+           x="21"
+           y="14"
+           width="6"
+           height="20"
+           id="rect1" />
+        <rect
+           x="14"
+           y="21"
+           width="20"
+           height="6"
+           id="rect2" />
+      </g>
     </g>
   </g>
 </svg>
