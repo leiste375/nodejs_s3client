@@ -94,6 +94,8 @@ input:focus {outline:none;}
     flex-wrap: wrap;
     margin: auto;
     padding-top: 1em;
+    overflow-y: auto;
+    max-height: 90vh;
 }
 .S3_Filebrowser_UI button {
     padding: .25em .3em .25em .3em;
@@ -129,6 +131,7 @@ input:focus {outline:none;}
     justify-content: center;
     margin: auto;
     text-align: center;
+    box-shadow: 0 2px 2px -2px var(--grey-1);
 }
 .S3_UI_Functions_Container {
     display: flex;
@@ -181,6 +184,10 @@ input:focus {outline:none;}
 .S3_Functions div {
     display: flex;
     justify-content: flex-end;
+    margin-bottom: 10px;
+}
+.Input_File_Container {
+    margin-bottom: 0px !important;
 }
 .S3_Upload, .S3_Create_Dir, .S3_Download {
     width: 100%;

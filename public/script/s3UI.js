@@ -271,9 +271,8 @@ function addDir() {
         window.alert(e) 
     });
 }
-async function readProgress() {
-    
-}
+
+//Uses lib-storage on the server-side. Unable to track proress v
 async function uploadFile() {
     const targetDir = uploadInput;
     const file = document.getElementById('S3_Upload_Input').files[0];
@@ -287,7 +286,8 @@ async function uploadFile() {
     formData.append('file', file);
     formData.append('filedir', targetDir);
     
-    //Set up progress tracker. Tried XHR, didn't work with lib-storage.
+    //Set up progress tracker.
+    //TODO: Implement @aws/xhr-http-handeler for smoother progress tracking.
     const progressBar = document.getElementById('S3_Upload_Progress_Bar');
     const eventSource = new EventSource(`/progress`);
     eventSource.onmessage = (event) => {
@@ -300,14 +300,12 @@ async function uploadFile() {
     };
     displayItemById('S3_Progress');
 
-    //fetch request
     try {
         const response = await fetch('/upload', {
             method: 'POST',
             body: formData,
             credentials: 'include',
         });
-        const result = await response.json();
         if (response.ok) {
             window.confirm(`Succesfully uploaded ${filename}`);
         };
@@ -335,6 +333,7 @@ function loadExisting() {
         .catch(e => console.error('Error fetching data:',e));
 }
 
+//Fetches updated list and triggers list-objects-v2 server-side.
 function renewList() {
     fetch('/filepicker2')
         .then(response => response.json())

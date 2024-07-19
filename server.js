@@ -229,6 +229,7 @@ const sendProgress = (sessionId, progress) => {
     }
 }
 
+//TODO: Implement @aws/xhr-http-handeler for smoother progress tracking.
 app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
     try {
         const sessionId = req.sessionID;
