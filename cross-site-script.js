@@ -1,9 +1,14 @@
 //Script posted into the label within OpenSpecimen GUI. Please note that the code below is not intended to be run by itself
 
-<script>
+//<script>
+
+//Set global variables
+s3MiddlewareUrl = 'https://localhost:3050'
+
 function createS3LoginForm(container, onSuccess) {
+
     const S3LoginForm = document.createElement('form');
-    S3LoginForm.action = 'https://localhost:3000/login';
+    S3LoginForm.action = `${s3MiddlewareUrl}/login`;
     S3LoginForm.method = 'post';
 
     const S3LabelUser = document.createElement('label');
@@ -93,14 +98,14 @@ if ( currentURL.includes("addedit-specimen") ) {
     console.log(S3Input);
     S3InputElement.style = "display: none";
     //newS3Filepicker.data-style = 'btn-info';
-    fetch( 'https://localhost:3000/filepicker', {credentials: 'include'} )
+    fetch( `${s3MiddlewareUrl}/filepicker1`, {credentials: 'include'} )
         .then(response => {
             console.log(response);
             if ( response.redirected && response.url.endsWith('/login') ) {
                 return new Promise(resolve => { 
                     createS3LoginForm(S3Input, function() {
                         resolve( 
-                            fetch( 'https://localhost:3000/filepicker', { credentials: 'include' } )
+                            fetch( `${s3MiddlewareUrl}/filepicker1`, { credentials: 'include' } )
                             .then( response => {
                                 console.log(response);
                                 return response.json();
@@ -137,4 +142,4 @@ if ( currentURL.includes("addedit-specimen") ) {
 
     document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.parentNode.childNodes[3].replaceChild(newElement, S3Element);
 }
-</script>
+//</script>

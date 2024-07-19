@@ -40,15 +40,9 @@ button, input, select, label, h1, h2, h3, p, .Filepick_UI_Header {
     display: block;
     margin: 10px 0 10px 0;
 }
- .s3_form label {
-    margin: 10px 0 10px 0;
-}
-.login_form button {
-    display: block;
-}
-/*Margin set specifically for login form*/
 .login_form button {
     margin: 20px auto 0 auto;
+    display: block;
 }
 .login_form button, .s3_form button {
     background: var(--light-green);
@@ -74,7 +68,6 @@ button, input, select, label, h1, h2, h3, p, .Filepick_UI_Header {
 }
 input:focus {outline:none;}
 .login_form input:focus, .s3_form input[type=text]:focus, .S3_Filebrowser_UI button:focus {
-    /*border: 1px solid var(--dark-green);*/
     box-shadow: 0 0 3px 3px var(--light-green);
     transition: .1s;
 }
@@ -82,11 +75,8 @@ input:focus {outline:none;}
     margin-bottom: 5px;
 }
 .s3_form {
-    display: flex;
-    flex-direction: column;
     width: 90%;
     margin:auto;
-    text-align: center;
 }
 .S3_Filebrowser_UI {
     width: 75%;
@@ -95,7 +85,7 @@ input:focus {outline:none;}
     margin: auto;
     padding-top: 1em;
     overflow-y: auto;
-    max-height: 90vh;
+    max-height: 80vh;
 }
 .S3_Filebrowser_UI button {
     padding: .25em .3em .25em .3em;
@@ -110,7 +100,6 @@ input:focus {outline:none;}
     position: relative;
 }
 .S3_UI_Button_Inner {
-    margin: .5em .5em .5em .5em;
     box-sizing: border-box;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -130,7 +119,6 @@ input:focus {outline:none;}
     align-items: center;
     justify-content: center;
     margin: auto;
-    text-align: center;
     box-shadow: 0 2px 2px -2px var(--grey-1);
 }
 .S3_UI_Functions_Container {
@@ -155,8 +143,6 @@ input:focus {outline:none;}
     align-items: center;
     justify-content: center;
     font-size: 16px;
-    background: var(--light-green);
-    color: white;
 }
 .S3_UI_NavBar button:focus {
     box-shadow: 0 0 3px 4px var(--dark-green);
@@ -176,11 +162,6 @@ input:focus {outline:none;}
     box-shadow: 0 0 2px 2px var(--light-green);
     transition: .2s;
 }
-.S3_Functions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
 .S3_Functions div {
     display: flex;
     justify-content: flex-end;
@@ -192,22 +173,21 @@ input:focus {outline:none;}
 .S3_Upload, .S3_Create_Dir, .S3_Download {
     width: 100%;
     order: 99;
-    margin-top: 10px;
-    display: flex;
-    justify-content: flex-end;
 }
 .S3_Upload input[type=file] {
     width: 15vw;
 }
+.S3_Download form {
+    text-align: right;
+}
 .S3_Download select {
-    max-width: 70%;
+    max-width: 80%;
 }
 .S3_Create_Dir button, .S3_Download button {
     margin: auto 0 auto 10px;
 }
 .S3_Create_Dir input[type=text] {
     margin: auto 0 auto auto;
-    height: 19px;
 }
 .S3_Function_Buttons {
     width: 100%;
