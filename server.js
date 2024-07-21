@@ -21,7 +21,7 @@ const httpHandler = new NodeHttpHandler({
 //Configure webserver
 const PORT = process.env.PORT || 3000;
 const HTTPS_ENABLED = process.env.HTTPS_ENABLED || false;
-if (HTTPS_ENABLED == 'false') {
+if (HTTPS_ENABLED === 'false') {
     http = require('http');
     //Disable SSL for all S3 API calls for testing purposes. Set via NODE_TLS_REJECT_UNAUTHORIZED in .env
     httpHandler.sslAgent = new http.Agent({
@@ -51,7 +51,7 @@ app.use(express.json());
 
 // Use sessions to track logged-in users
 app.use(cookieParser());
-if (process.env.HTTPS_PROXY == true && process.env.HTTPS_ENABLED == 'false') {
+if (process.env.HTTPS_PROXY === true && process.env.HTTPS_ENABLED === 'false') {
     console.log('Server requires Proxy to work');
     app.set('trust proxy', 1);
 }
@@ -114,7 +114,7 @@ function S3DirStructure(s3ObjList) {
         }
         path.forEach((part, index) => {
             //Assign entry to last part of the path or create new array if applicable. 
-            if (index == path.length - 1) {
+            if (index === path.length - 1) {
                 runningJson[part] = s3Entry;
             } else if (!runningJson[part]) {
                 runningJson[part] = {};
@@ -164,7 +164,7 @@ app.get('/login', (req, res) => {
 // Endpoint to authenticate a user
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    const AllowedUsers = process.env.S3_USERS.split(',');
+    const AllowedUsers = process.env.S3_USERS;
 
     //Ensure that form isn't empty and that users are authorized. Array of users is currently defined via .env file.
     if (!username || !password) {
@@ -316,7 +316,7 @@ app.post('/delete', handleLogin, async (req, res) => {
         if (!array) {
             return res.status(400).send('File for deletion is required');
         }
-        if (array.length == 1) {
+        if (array.length === 1) {
             const params = {
                 Bucket: process.env.S3_BUCKET_NAME,
                 Key: array[0].Key,
@@ -369,8 +369,9 @@ app.get('/filepicker2', handleLogin, async (req, res) => {
     } catch(e) {
         console.error('Error while updating list:',e)
     }
-})
-if (HTTPS_ENABLED == 'false') {
+});
+
+if (HTTPS_ENABLED === 'false') {
     http.createServer(app).listen(PORT, () => {
         console.log(`HTTP Server is running on port ${PORT}`)
     });

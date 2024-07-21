@@ -142,7 +142,8 @@ input:focus {outline:none;}
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 14px;
+    padding: 1px 4px 1px 4px;
 }
 .S3_UI_NavBar button:focus {
     box-shadow: 0 0 3px 4px var(--dark-green);
@@ -181,10 +182,12 @@ input:focus {outline:none;}
     text-align: right;
 }
 .S3_Download select {
-    max-width: 80%;
+    width: 100%;
+    order: 1;
 }
 .S3_Create_Dir button, .S3_Download button {
-    margin: auto 0 auto 10px;
+    margin: 5px 0 5px 10px;
+    min-width: fit-content;
 }
 .S3_Create_Dir input[type=text] {
     margin: auto 0 auto auto;
@@ -214,7 +217,7 @@ input:focus {outline:none;}
 
 /*Simple CSS loading animation*/
 .loading {
-    margin: auto 10px auto auto;
+    margin: auto 10px 0px auto !important;
     border: 4px solid var(--dark-green);
     border-radius: 50%;
     border-top: 4px solid rgb(255 255 255 / 0);

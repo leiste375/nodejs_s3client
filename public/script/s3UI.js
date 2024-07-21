@@ -13,14 +13,16 @@ function removeElementById(elementId) {
 function clearTarget() {
     deleteS3Target = null;
     document.getElementById('S3_Filepick_Select').value = '';
-    if (document.getElementById('S3_Download').style.display = 'flex') {
-    displayItemById('S3_Download');
-    }
+    ['S3_Download','S3_Upload','S3_Create_Dir'].forEach(function(currentValue) {
+        if (document.getElementById(currentValue).style.display = 'flex') {
+        displayItemById(currentValue);
+        }
+    });
 }
 
 //Change CSS style to display element
 function displayItemById(htmlId) {
-    if (document.getElementById(htmlId).style.display == 'none') {
+    if (document.getElementById(htmlId).style.display === 'none') {
         document.getElementById(htmlId).style.display = 'flex';
     } else {
         document.getElementById(htmlId).style.display = 'none';
@@ -32,13 +34,13 @@ function fillS3Download(s3HTMLElement, s3Keys) {
     const traverseJson = (s3objects) => {
         for (s3object in s3objects) {
             //Check if object is a file & add option to dropdown menu.
-            if ( s3objects[s3object].hasOwnProperty('Key') && (typeof s3objects[s3object].Key) == 'string' && s3objects[s3object].Size != 0 ) {
+            if ( s3objects[s3object].hasOwnProperty('Key') && (typeof s3objects[s3object].Key) === 'string' && s3objects[s3object].Size !== 0 ) {
                 const option = document.createElement('option');
                 option.value = s3objects[s3object].Key;
                 option.text = s3objects[s3object].Key.split('/').slice(-1);
                 s3HTMLElement.appendChild(option);
             //Restart loop if object contains other objects.
-            } else if ( (typeof s3objects[s3object]) == 'object' && Object.keys(s3objects[s3object]).length > 2 ) {
+            } else if ( (typeof s3objects[s3object]) === 'object' && Object.keys(s3objects[s3object]).length > 2 ) {
                 traverseJson(s3objects[s3object]);
             }
         }
@@ -57,7 +59,7 @@ function s3InitializeUI(s3Keys) {
     //Clean up functions menu
     const functionDivs = document.getElementsByClassName('S3_Function');
     for ( let div = 0; div < functionDivs.length; div++ ) {
-        if (functionDivs[div].style.display != 'none') {
+        if (functionDivs[div].style.display !== 'none') {
             displayItemById(functionDivs[div].id);
         }
     }
@@ -66,11 +68,11 @@ function s3InitializeUI(s3Keys) {
     var s3ListRunningId = 0;
     for (s3Entry in s3Keys) {
         //Ensure we have a valid S3 Object, and Key is not itself a directory within. 
-        if (s3Keys[s3Entry].hasOwnProperty('Key') && (typeof s3Keys[s3Entry].Key) == 'string') {
+        if (s3Keys[s3Entry].hasOwnProperty('Key') && (typeof s3Keys[s3Entry].Key) === 'string') {
             let dirName;
             let currentS3Key = s3Keys[s3Entry].Key;
             //Pretty names
-            if (dirLvl == 0 && currentS3Key.startsWith('/')) {
+            if (dirLvl === 0 && currentS3Key.startsWith('/')) {
                 dirName = `/${currentS3Key.split('/')[1]}`;
             } else {
                 dirName = currentS3Key.split('/')[dirLvl];
@@ -103,15 +105,20 @@ function s3UIHandleButton(s3Key) {
     //Check if target is a file or a directory and act accordingly.
     const traverseJson = (s3Objects, s3Key) => {
         for (s3Object in s3Objects) {
-            if (s3Objects[s3Object].hasOwnProperty('Key') && s3Objects[s3Object].Key == s3Key) {
+            if (s3Objects[s3Object].hasOwnProperty('Key') && s3Objects[s3Object].Key === s3Key) {
                 //Check for empty directory
-                if (Object.keys(s3Objects[s3Object]).length <= 2 && s3Objects[s3Object].Size == 0) {
+                if (Object.keys(s3Objects[s3Object]).length <= 2 && s3Objects[s3Object].Size === 0) {
                     document.getElementById('S3_UI_NavBar').insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Directory empty.</p>');
                 //If object is file then this is quick.
                 } else if (Object.keys(s3Objects[s3Object]).length <= 2 && s3Objects[s3Object].Size > 0) {
                     filepickInput.value = s3Key;
+                    //If in an iframe, dispatch event back to overarching site.
+                    if (iframeResult === true) {
+                        const event = new Event('change', { bubbles: true });
+                        filepickInput.dispatchEvent(event);
+                    }
                     deleteS3Target = s3Key;
-                    if (document.getElementById('S3_Download').style.display == 'none') {
+                    if (document.getElementById('S3_Download').style.display === 'none') {
                         displayItemById('S3_Download'); 
                     }
                     return
@@ -125,7 +132,7 @@ function s3UIHandleButton(s3Key) {
                 let navButton = document.createElement('button');
                 navButton.id = `${currentLvl}_nav_btn`;
                 //Handle exceptions caused by S3 object keys starting with /
-                if (dirLvl == 1 && s3Key.startsWith('/')) {
+                if (dirLvl === 1 && s3Key.startsWith('/')) {
                     navButtonText = `/${s3Key.split('/')[currentLvl]}`
                 } else {
                     navButtonText = s3Key.split('/')[currentLvl - 1];
@@ -135,7 +142,7 @@ function s3UIHandleButton(s3Key) {
                 document.getElementById(`${currentLvl}_nav_btn`).addEventListener( 'click', function(){ s3NavButton(currentLvl, buttonTarget) } );
                 s3InitializeUI(s3Objects[s3Object]);
                 return
-            } else if ( (typeof s3Objects[s3Object]) == 'object' && Object.keys(s3Objects[s3Object]).length > 2 ) {
+            } else if ( (typeof s3Objects[s3Object]) === 'object' && Object.keys(s3Objects[s3Object]).length > 2 ) {
                 traverseJson(s3Objects[s3Object], s3Key);
             }
         };
@@ -147,7 +154,7 @@ function s3UIHandleButton(s3Key) {
 function s3NavButton(targetLvl, s3Object) {
     removeElementById('S3_UI_Msg');
     document.getElementById('S3_Filepick_Select').value = '';
-    if (targetLvl == dirLvl) {
+    if (targetLvl === dirLvl) {
         //Check if we're home
         if (s3Object === '') {
             deleteS3Target = '/';
@@ -158,11 +165,11 @@ function s3NavButton(targetLvl, s3Object) {
         }
         return;
     }
-    for (let i = dirLvl; i >= targetLvl && i != 0; i--) {
+    for (let i = dirLvl; i >= targetLvl && i !== 0; i--) {
         let navBtnString = `${i}_nav_btn`;
         removeElementById(navBtnString);
     }
-    if (targetLvl == 0) {
+    if (targetLvl === 0) {
         dirLvl = targetLvl;
         uploadInput = '/';
         s3InitializeUI(s3KeysGlobalVar);
@@ -198,22 +205,22 @@ function sendS3Keys(targetUrl, s3Array) {
 
 //Read all keys to send back to server to handle deletion of both directories and single files.
 function deleteObj() {
-    if (deleteS3Target === null) {
+    if (deleteS3Target == null) {
         document.getElementById('S3_UI_NavBar').insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Please explicitly select an object<br>to avoid accidents.</p>')
         return
     }
     const deleteS3Keys = [];
     const collectKeys = (s3Objects) => {
         for (s3Object in s3Objects) {
-            if (s3Objects[s3Object].hasOwnProperty('Key') && (typeof s3Objects[s3Object].Key) == 'string') {
+            if (s3Objects[s3Object].hasOwnProperty('Key') && (typeof s3Objects[s3Object].Key) === 'string') {
                 deleteS3Keys.push({ Key: s3Objects[s3Object].Key });
             }
-            if (s3Objects[s3Object].hasOwnProperty('Size') && s3Objects[s3Object].Size == 0) {
+            if (s3Objects[s3Object].hasOwnProperty('Size') && s3Objects[s3Object].Size === 0) {
                 collectKeys(s3Objects[s3Object]);
             }
         }
     }
-    if ((typeof deleteS3Target) == 'object') {
+    if ((typeof deleteS3Target) === 'object') {
         if (window.confirm(`Are you sure you want to delete the entire contents of directory ${deleteS3Target.Key}`)) {
             insertLoading('S3_Function_Buttons');
             deleteS3Keys.push({ Key: deleteS3Target.Key });
@@ -222,7 +229,7 @@ function deleteObj() {
         } else {
             return
         }
-    } else if ((typeof deleteS3Target) == 'string' && deleteS3Target != '/') {
+    } else if ((typeof deleteS3Target) === 'string' && deleteS3Target !== '/') {
         //Ensure that string is not a directory
         if (window.confirm(`Do you want to the delete ${deleteS3Target}`)) {
             insertLoading('S3_Function_Buttons');
@@ -231,7 +238,7 @@ function deleteObj() {
         } else {
             return
         }
-    } else if (deleteS3Target == '/') {
+    } else if (deleteS3Target === '/') {
         if (window.confirm(`ATTENTION. You are about to delete the entire storage! Are you sure?`)) {
             insertLoading('S3_Function_Buttons');
             collectKeys(s3KeysGlobalVar);
@@ -244,7 +251,7 @@ function deleteObj() {
 
 function addDir() {
     const dirname = document.getElementById('S3_Create_Dir_Input').value;
-    if (dirname == '') {
+    if (dirname === '') {
         removeElementById('S3_UI_Msg');
         document.getElementById('S3_UI_NavBar').insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Please select a directory.</p>');
         return
@@ -349,6 +356,55 @@ function renewList() {
         })
 }
 
+function copyText(htmlElement, endpoint, toClipboard) {
+    const localDomain = window.location.origin.toString();
+    if (!localDomain.endsWith('/')) {
+        localDomain.concat('/');
+    }
+    const targetText = document.getElementById(htmlElement).value;
+    const link = `${localDomain}${endpoint}${targetText}`;
+    if (toClipboard === true) {
+        navigator.clipboard.writeText(link);
+        alert('Copied link to clipboard.');
+    }
+    return link;
+}
+
+//Set up event listener for cross-site-iframe.js
+async function initializeIframe() {
+    try {
+        //Check if I am inside an iframe
+        iframeResult = window.self !== window.top;
+        if (!iframeResult === true) {
+            insideIframe = false;
+            return
+        }
+        insideIframe = true;
+        //Fetch list of allowed cross-site-domains.
+        window.addEventListener('message', function(event) {
+            const message = event.data;
+            console.log(message);
+            if (message.action === 'attachOnChange' && message.elementId) {
+                const selectElement = document.getElementById(message.elementId);
+                if (!selectElement) {
+                    return
+                }
+                selectElement.onchange = function() {
+                    const selectedLink = copyText(message.elementId, '/download?filename=', false);
+                    // Send the selected value back to the parent page
+                    event.source.postMessage({
+                        action: 'valueChanged',
+                        value: selectedLink,
+                    }, event.origin);
+                };
+            }
+        });
+    } catch (e) {
+        console.log('Error: ', e)
+    }
+};
+
 loadExisting();
 renewList();
 uploadInput = '/';
+initializeIframe();

@@ -42,8 +42,9 @@
                 <form action="/download" method="get">
                     <select id="S3_Filepick_Select" type="text" class="filename" name="filename" data-style="btn-info" placeholder="Choose object.">
                     </select>
-                    <button type="submit">Download</button>
-                </form></div>
+                    <button type="submit">Download</button><button type="button" onclick="copyText('S3_Filepick_Select', '/download?filename=', true)">Copy link</button>
+                </form>
+                </div>
             </div>
         </div>
         </div>
