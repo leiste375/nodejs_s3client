@@ -87,6 +87,10 @@ const s3Client = new S3Client({
     forcePathStyle: true,
 });
 
+function fileExists(fullPath) {
+        
+}
+
 //Async function to get list of objects in storage
 async function s3Sync(client) {
     const objList = [];
@@ -344,15 +348,19 @@ app.post('/delete', handleLogin, async (req, res) => {
 //Endpoint to serve a JSON of all available objects in storage. The first endpoint serves a previously downloaded JSON,
 //whereas the second endpoint will update the list. 
 app.get('/filepicker1', handleLogin, async (req, res) => {
-    const s3DirStruct = path.join(__dirname, '/downloads/s3DirStructure.json');
-    const s3ObjectList = path.join(__dirname, '/downloads/s3ObjectList.json');
-    if (!fs.existsSync(s3DirStruct)) {
-        fs.writeFileSync(s3DirStruct, '{}', { flag: 'w+' });
-    }
-    if (!fs.existsSync(s3ObjectList)) {
-        fs.writeFileSync(s3ObjectList, '{}', { flag: 'w+' });
-    }
     try {
+        const downloadDir = path.join(__dirname, 'downloads');
+        if (!fs.existsSync(downloadDir)) {
+            fs.mkdirSync(downloadDir, { recursive: true });
+        }
+        const s3DirStruct = path.join(__dirname, '/downloads/s3DirStructure.json');
+        const s3ObjectList = path.join(__dirname, '/downloads/s3ObjectList.json');
+        if (!fs.existsSync(s3DirStruct)) {
+            fs.writeFileSync(s3DirStruct, '{}', { flag: 'w+' });
+        }
+        if (!fs.existsSync(s3ObjectList)) {
+            fs.writeFileSync(s3ObjectList, '{}', { flag: 'w+' });
+        }
         const [s3DirData, s3ListData] = await Promise.all([
             fs.promises.readFile(s3DirStruct, 'utf-8'),
             fs.promises.readFile(s3ObjectList, 'utf-8')
@@ -362,7 +370,7 @@ app.get('/filepicker1', handleLogin, async (req, res) => {
 
         res.status(200).json({ s3Dir: s3DirJson, s3List: s3ListJson });
     } catch (e) {
-        res.status(500).send('Error while parsing files:',e);
+        res.status(500).json({ error: `Error while parsing files: ${e}`});
     }
 });
 app.get('/filepicker2', handleLogin, async (req, res) => {
