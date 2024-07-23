@@ -66,7 +66,7 @@ var sess = {
         httpOnly: true,
     }
 }
-if (process.env.HTTPS_PROXY === true && process.env.HTTPS_ENABLED === 'false') {
+if (process.env.HTTPS_PROXY === 'true' && process.env.HTTPS_ENABLED === 'false') {
     console.log('Server requires Proxy to work');
     app.set('trust proxy', 1)
     sess.cookie.secure = true
