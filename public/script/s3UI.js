@@ -40,9 +40,7 @@ function displayItemById(htmlId) {
 //See https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html for reference.
 function sanitize(inputString) {
     const pattern = /^[A-Za-z0-9!._*'()\-\s]*$/;
-    if (!pattern.test(dirname)) {
-        return 
-    }
+    return pattern.test(inputString)
 }
 
 function dirLVlFromKey(splitPath) {
@@ -294,17 +292,24 @@ function deleteObj() {
 }
 
 function addDir() {
-    const dirname = document.getElementById('S3_Create_Dir_Input').value;
+    var dirname = document.getElementById('S3_Create_Dir_Input').value;
     if (dirname === '') {
         removeElementById('S3_UI_Msg');
         document.getElementById('S3_UI_NavBar').insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Please select a directory.</p>');
         return
+    } else if (dirname.startsWith('/')) {
+        dirname = dirname.slice(1);
     }
-    /*if (!sanitize(dirname)) {
+    console.log(dirname);
+    if (!sanitize(dirname)) {
         window.alert('Only alphanumeric character allowed as well as ! . _ * \' () - ');
         return
-    }*/
-    const newdir = uploadInput.concat(dirname);
+    }
+    if (uploadInput === '/' || uploadInput === '') {
+        var newdir = dirname;
+    } else {
+        var newdir = uploadInput.concat(dirname);
+    }
     insertLoading('S3_Function_Buttons');
     fetch('/createdir', {
         method: 'POST',
@@ -338,6 +343,7 @@ async function uploadFile() {
     }
     if (!sanitize(filename)) {
         window.alert('Only alphanumeric character allowed as well as ! . _ * \' () - ');
+        return
     }
     insertLoading('S3_Function_Buttons');
     const formData = new FormData();

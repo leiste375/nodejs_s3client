@@ -135,9 +135,12 @@ function handleDir(dirKey) {
     if (!dirKey.endsWith('/')) {
         dirKey +='/';
     }
-    if (dirKey.startsWith('/')) {
+    //Currently input of names starting with '/' is allowed server-side.
+    //Names are sanitized on the client-side. 
+    //This is to avoid issues with Keys such as '/example/example.jpg' which were set via another client.
+    /*if (dirKey.startsWith('/')) {
         dirKey = dirKey.slice(1);
-    }
+    }*/
     return dirKey
 };
 
