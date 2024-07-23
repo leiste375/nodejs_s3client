@@ -102,7 +102,7 @@ function s3InitializeUI(s3Keys, search) {
             let currentS3Key = s3Keys[s3Entry].Key;
             let path = currentS3Key.split('/');
             //Pretty names
-            if (currentS3Key.startsWith('/') && dirLvl === 0) {
+            if (currentS3Key.startsWith('/') && dirLvl === 0 && s3Keys[s3Entry].Size === 0) {
                 dirName = `/${path[path.length - 2]}`;
             } else if (currentS3Key.endsWith('/') && s3Keys[s3Entry].Size === 0) {
                 dirName = `${path[path.length - 2]}`
@@ -163,6 +163,7 @@ function s3UIHandleButton(s3Key) {
                 const navDiv = document.getElementById('S3_UI_NavBar');
                 var buttonTarget = '';
                 currentTarget = s3Objects[s3Object]
+                //Loop through key to create nav bar
                 for (let i = 1; i <= dirLvl; i++) {
                     removeElementById(`${i}_nav_btn`);
                     let navButton = document.createElement('button');

@@ -51,11 +51,7 @@ app.use(express.json());
 
 // Use sessions to track logged-in users
 app.use(cookieParser());
-if (process.env.HTTPS_PROXY === true && process.env.HTTPS_ENABLED === 'false') {
-    console.log('Server requires Proxy to work');
-    app.set('trust proxy', 1);
-}
-app.use(session({
+var sess = {
     genid: (req) => { return uuidv4(); },
     secret: process.env.COOKIE_SECRET_HASH,
     resave: false,
@@ -64,12 +60,18 @@ app.use(session({
     partitioned: true,
     saveUninitialized: true,
     cookie: {
-        secure: process.env.HTTPS_PROXY,
+        secure: false,
         //Set sameSite to None to avoid connect.sid warning & allow cross-site requests.
         sameSite: 'None',
-        httpOnly: process.env.HTTPS_PROXY,
+        httpOnly: true,
     }
-}));
+}
+if (process.env.HTTPS_PROXY === true && process.env.HTTPS_ENABLED === 'false') {
+    console.log('Server requires Proxy to work');
+    app.set('trust proxy', 1)
+    sess.cookie.secure = true
+};
+app.use(session(sess))
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -135,12 +137,6 @@ function handleDir(dirKey) {
     if (!dirKey.endsWith('/')) {
         dirKey +='/';
     }
-    //Currently input of names starting with '/' is allowed server-side.
-    //Names are sanitized on the client-side. 
-    //This is to avoid issues with Keys such as '/example/example.jpg' which were set via another client.
-    /*if (dirKey.startsWith('/')) {
-        dirKey = dirKey.slice(1);
-    }*/
     return dirKey
 };
 
