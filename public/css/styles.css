@@ -240,3 +240,9 @@ input:focus {outline:none;}
         rotate(360deg)
     }
 }
+.S3_Progress {
+    width. 60%;
+}
+.S3_Upload_Progress_Bar {
+    width: 100%;
+}

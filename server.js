@@ -86,19 +86,19 @@ const s3Client = new S3Client({
 });
 
 //Async function to get list of objects in storage
-async function S3ObjectList(client) {
+async function s3Sync(client) {
     const objList = [];
     for await (const data of paginateListObjectsV2({ client }, { Bucket: process.env.S3_BUCKET_NAME } )) {
         objList.push(...(data.Contents ?? []));
     }
-    const s3Json = { Contents: objList };
-    const jsonData = JSON.stringify(s3Json, null, 4);
-    fs.writeFile(path.join(__dirname, '/downloads/s3ObjectList.json'), jsonData, 'utf-8', function(e) {
+    const jsonFiltered = objList.map(item => ({ Key: item.Key, Size: item.Size, LastModified: item.LastModified }));
+    const s3Objects = JSON.stringify(jsonFiltered, null, 4);
+    fs.writeFile(path.join(__dirname, '/downloads/s3ObjectList.json'), s3Objects, 'utf-8', function(e) {
         if (e) {
             console.log(e);
         }
     });
-    return jsonData;
+    return jsonFiltered;
 };
 
 //Create a directory structure out of a S3 object list.
@@ -106,7 +106,7 @@ function S3DirStructure(s3ObjList) {
     const finalJson = {};
     s3ObjList.forEach(s3Entry => {
         //Split Key string and loop through resulting list.
-        var path = s3Entry.Key.split("/").filter(part => part !== '');
+        const path = s3Entry.Key.split("/").filter(part => part !== '');
         let runningJson = finalJson;
         //Handle object keys starting with a slash
         if (s3Entry.Key.startsWith('/')) {
@@ -122,7 +122,7 @@ function S3DirStructure(s3ObjList) {
             runningJson = runningJson[part];
         });
     });
-    jsonData = JSON.stringify(finalJson, null, 4);
+    const jsonData = JSON.stringify(finalJson, null, 4);
     fs.writeFile(path.join(__dirname, '/downloads/s3DirStructure.json'), jsonData, 'utf-8', function(e) {
         if (e) {
             console.log(e);
@@ -273,7 +273,9 @@ app.use('/createdir', express.text());
 app.post('/createdir', handleLogin, async(req, res) => {
     try {
         let newdir = req.body;
+        console.log(newdir);
         newdir = handleDir(newdir);
+        console.log(newdir);
 
         const params = {
             Bucket: process.env.S3_BUCKET_NAME,
@@ -343,29 +345,34 @@ app.post('/delete', handleLogin, async (req, res) => {
 //Endpoint to serve a JSON of all available objects in storage. The first endpoint serves a previously downloaded JSON,
 //whereas the second endpoint will update the list. 
 app.get('/filepicker1', handleLogin, async (req, res) => {
-    const S3ListPath = path.join(__dirname, '/downloads/s3DirStructure.json');
-    if (!fs.existsSync(S3ListPath)) {
-        fs.writeFileSync(S3ListPath, '{}', { flag: 'w+' });
+    const s3DirStruct = path.join(__dirname, '/downloads/s3DirStructure.json');
+    const s3ObjectList = path.join(__dirname, '/downloads/s3ObjectList.json');
+    if (!fs.existsSync(s3DirStruct)) {
+        fs.writeFileSync(s3DirStruct, '{}', { flag: 'w+' });
+    }
+    if (!fs.existsSync(s3ObjectList)) {
+        fs.writeFileSync(s3ObjectList, '{}', { flag: 'w+' });
     }
     try {
-        fs.readFile(S3ListPath, 'utf-8', (e, s3List) => {
-            if (e) {
-                console.error('Error while reading file:',e);
-                return res.status(500).send(e.message);
-            }
-            res.json(JSON.parse(s3List));
-        });
+        const [s3DirData, s3ListData] = await Promise.all([
+            fs.promises.readFile(s3DirStruct, 'utf-8'),
+            fs.promises.readFile(s3ObjectList, 'utf-8')
+        ]);
+        const s3DirJson = JSON.parse(s3DirData);
+        const s3ListJson = JSON.parse(s3ListData);
+
+        res.status(200).json({ s3Dir: s3DirJson, s3List: s3ListJson });
     } catch (e) {
-        res.status(500).send('Error while parsing json:',e);
+        res.status(500).send('Error while parsing files:',e);
     }
 });
 app.get('/filepicker2', handleLogin, async (req, res) => {
     try {
-        currentS3List = await S3ObjectList(s3Client);
-        const jsonDataNew = JSON.parse(currentS3List);
-        const jsonFilteredNew = jsonDataNew.Contents.map(item => ({ Key: item.Key, Size: item.Size }));
-        const finalListNew = S3DirStructure(jsonFilteredNew);
-        res.json(finalListNew);
+        let syncedS3Objects = await s3Sync(s3Client);
+        //Clone object to avoid it being overwritten
+        const s3ObjectsClone = JSON.parse(JSON.stringify(syncedS3Objects));
+        const s3Dir = S3DirStructure(syncedS3Objects);
+        res.status(200).json({ s3Dir: s3Dir, s3List: s3ObjectsClone });
     } catch(e) {
         console.error('Error while updating list:',e)
     }

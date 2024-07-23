@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon" type="image/png" href="graphics/favicon.png">
     <script src="script/s3UI.js"></script>
+    <!--Fuzzysort taken from https://github.com/farzher/fuzzysort/tree/master-->
+    <script src="script/fuzzysort.min.js"></script>
     <!--Buttons sourced from here: https://commons.wikimedia.org/wiki/User:CFCF/gallery/Archive_2-->
     <!--X slightly modified from here: https://commons.wikimedia.org/wiki/File:Crystal_button_cancel.svg-->
 </head>
@@ -21,18 +23,23 @@
                 <div id="S3_Functions" class="S3_Functions">
                 <div id="S3_Function_Buttons" class="S3_Function_Buttons">
                     <div id="loading" class="loading" style="order: 1"></div>
-                    <button id="Upload_File" title="Upload file to current directory" class="function_button" style="order: 2" onclick="displayItemById('S3_Upload')"><img src="graphics/UploadFileCC.svg"></button>
-                    <button id="Add_directory" title="Add folder to current directory" class="function_button" style="order: 3" onclick="displayItemById('S3_Create_Dir')" style="order: 3"><img src="graphics/AddDirIconCC.svg"></button>
-                    <button id="Delete object" title="Delete object" class="function_button" onclick="deleteObj()" style="order: 4"><img src="graphics/DeleteModifiedGNULGPL.svg"></button>
+                    <button id="Search" title="Search" class="function_button" style="order: 2" onclick="displayItemById('S3_Search')"><img src="graphics/SearchCC.svg"></button>
+                    <button id="Download" title="Open download menu" class="function_button" style="order: 3" onclick="displayItemById('S3_Download')"><img src="graphics/DownloadCC.svg"></button>
+                    <button id="Upload_File" title="Upload file to current directory" class="function_button" style="order: 4" onclick="displayItemById('S3_Upload')"><img src="graphics/UploadFileCC.svg"></button>
+                    <button id="Add_directory" title="Add folder to current directory" class="function_button" style="order: 5" onclick="displayItemById('S3_Create_Dir')" style="order: 3"><img src="graphics/AddDirIconCC.svg"></button>
+                    <button id="Delete object" title="Delete object" class="function_button" onclick="deleteObj()" style="order: 6"><img src="graphics/DeleteModifiedGNULGPL.svg"></button>
+                    <div id="S3_Progress" class="S3_Progress" style="display: none; order: 7">
+                        <progress id="S3_Upload_Progress_Bar" class="S3_Upload_Progress_Bar" max="100"></progress>
+                    </div>
                 </div>
-                <div id="S3_Progress" class="S3_Progress" style="display: none">
-                    <progress id="S3_Upload_Progress_Bar" class="S3_Upload_Progress_Bar" max="100"></progress>
+                <div id="S3_Search" class="S3_Search S3_Function" style="display: none" >
+                    <input id="S3_Search_Input" type="text" oninput="fuzzysearch()">
                 </div>
                 <div id="S3_Upload" class="S3_Upload S3_Function" style="display: none">
-                        <div id="Input_File_Container" class="Input_File_Container" style="width: 100%">
-                            <input id="S3_Upload_Input" type="file" name="file" required>
-                        </div>
-                        <button type="submit" onclick="uploadFile()">Upload</button>
+                    <div id="Input_File_Container" class="Input_File_Container" style="width: 100%">
+                        <input id="S3_Upload_Input" type="file" name="file" required>
+                    </div>
+                    <button type="submit" onclick="uploadFile()">Upload</button>
                 </div>
                 <div id="S3_Create_Dir" class="S3_Create_Dir S3_Function" style="display: none">
                     <input id="S3_Create_Dir_Input" type="text" name="newdir" placeholder="Please insert name">
@@ -48,6 +55,7 @@
             </div>
         </div>
         </div>
+        <div id="S3_Search_Results" class="S3_Filebrowser_UI" style="display: none"></div>
         <div id="S3_Filepick_UI" class="S3_Filebrowser_UI"></div>
     </div>
 </body>
