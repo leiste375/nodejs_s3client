@@ -1,7 +1,7 @@
 //Custom script to allow users to select download on third-party site.
 //In this case hardcoded to interact with OpenSpecimen, but can be adapted easily enough.
-s3MiddlewareUrl = 'https://localhost:3050'
-
+s3MiddlewareUrl = 'https://localhost:3050';
+console.log('I\'m alive'); 
 function createModal() {
     cssCode = `.S3_Modal {
         position: fixed;
@@ -86,14 +86,14 @@ function trackS3Input() {
     window.addEventListener('message', function(event) {
         if (event.origin !== s3MiddlewareUrl) {
             return;
-        }
+        };
       	document.getElementById('S3_Fake_Input').value = event.data.value;
       	S3InputElement.value = event.data.value;
     });
-}
+};
 
 function displayS3Modal() {
-    const s3ModalWindow = document.getElementById('S3_Modal')
+    const s3ModalWindow = document.getElementById('S3_Modal');
     const iframe = document.getElementById('S3_Iframe');
     if (s3ModalWindow && s3ModalWindow.style.display === 'inline-block') {
         s3ModalWindow.style.display = 'none';
@@ -102,24 +102,22 @@ function displayS3Modal() {
         s3ModalWindow.style.display = 'inline-block';
         iframe.src = s3MiddlewareUrl;
         trackS3Input();
-    }
+    };
 };
 
 var currentURL = window.location.href;
 if ( currentURL.includes("addedit-specimen") ) {
-createModal();
+    createModal();
 
-var xpath = "//span[contains(text(),'frX Storage Location')]";
-var S3Input = document.evaluate( xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null ).singleNodeValue.parentNode.parentNode.childNodes[1];
-S3Input.style = 'display: flex;';
-var S3InputElement = S3Input.childNodes[0];
+    var xpath = "//span[contains(text(),'frX Storage Location')]";
+    var S3Input = document.evaluate( xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null ).singleNodeValue.parentNode.parentNode;
+    var S3InputElement = S3Input.childNodes[1];
 
-var s3Modal = document.getElementById('S3_Modal');
-
-var openS3Button = document.createElement('button');
-openS3Button.id = 'S3_Open_Modal';
-//openS3Button.className = 'btn-primary';
-openS3Button.onclick = displayS3Modal;
-openS3Button.innerHTML += 'Select file';
-S3Input.appendChild(openS3Button);
+    var s3Modal = document.getElementById('S3_Modal');
+    var openS3Button = document.createElement('button');
+    openS3Button.id = 'S3_Open_Modal';
+    openS3Button.className = 'btn btn-primary';
+    openS3Button.onclick = displayS3Modal;
+    openS3Button.innerHTML += 'Select file';
+    S3Input.appendChild(openS3Button);
 };
