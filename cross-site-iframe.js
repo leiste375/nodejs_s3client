@@ -5,7 +5,7 @@ console.log('I\'m alive');
 function createModal() {
     cssCode = `.S3_Modal {
         position: fixed;
-        z-index: 1;
+        z-index: 3;
         left: 0;
         top: 0;
         width: 100%;

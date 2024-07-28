@@ -163,10 +163,16 @@ input:focus {outline:none;}
     box-shadow: 0 0 2px 2px var(--light-green);
     transition: .2s;
 }
+.S3_Functions {
+    width: 40%;
+}
 .S3_Functions div {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 10px;
+}
+.S3_Functions input {
+    width: 100%;
 }
 .Input_File_Container {
     margin-bottom: 0px !important;
@@ -175,9 +181,9 @@ input:focus {outline:none;}
     width: 100%;
     order: 99;
 }
-.S3_Upload input[type=file] {
+/*.S3_Upload input[type=file] {
     width: 15vw;
-}
+}*/
 .S3_Download form {
     text-align: right;
 }
@@ -194,8 +200,13 @@ input:focus {outline:none;}
 }
 .S3_Function_Buttons {
     width: 100%;
-    justify-content: flex-end;
-    display: flex;
+    flex-wrap: wrap;
+}
+.S3_Progress {
+    width: 100%;
+}
+.S3_Upload_Progress_Bar {
+    width: 100%;
 }
 .function_button {
     background: none !important;
@@ -217,6 +228,7 @@ input:focus {outline:none;}
 
 /*Simple CSS loading animation*/
 .loading {
+    /isplay: flex;
     margin: auto 10px 0px auto !important;
     border: 4px solid var(--dark-green);
     border-radius: 50%;
@@ -239,10 +251,4 @@ input:focus {outline:none;}
     100% { transform: 
         rotate(360deg)
     }
-}
-.S3_Progress {
-    width. 60%;
-}
-.S3_Upload_Progress_Bar {
-    width: 100%;
 }

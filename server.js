@@ -48,6 +48,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '/public')));
 app.use(express.json());
+app.disable('x-powered-by');
 
 // Use sessions to track logged-in users
 app.use(cookieParser());
@@ -86,10 +87,6 @@ const s3Client = new S3Client({
     requestHandler: httpHandler,
     forcePathStyle: true,
 });
-
-function fileExists(fullPath) {
-        
-}
 
 //Async function to get list of objects in storage
 async function s3Sync(client) {
@@ -238,7 +235,6 @@ app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
         const sessionId = req.sessionID;
         if (!sessionId) {
             res.status(500).send('Error processing session ID.');
-        } else {
         }
 
         let filedir = String(req.body.filedir);
@@ -276,9 +272,7 @@ app.use('/createdir', express.text());
 app.post('/createdir', handleLogin, async(req, res) => {
     try {
         let newdir = req.body;
-        console.log(newdir);
         newdir = handleDir(newdir);
-        console.log(newdir);
 
         const params = {
             Bucket: process.env.S3_BUCKET_NAME,
