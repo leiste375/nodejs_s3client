@@ -51,33 +51,6 @@ function dirLVlFromKey(splitPath) {
     }
 }
 
-//Fill filepicker dropdown menu containing all files in S3 storage.
-//TODO: Offload to server & merge with building of Dir structure. 
-function fillS3Download(s3HTMLElement, s3Keys) {
-    const traverseJson = (s3objects) => {
-        for (s3object in s3objects) {
-            //Check if object is a file & add option to dropdown menu plus construct list for fuzzysearch.
-            if ( s3objects[s3object].hasOwnProperty('Key') && (typeof s3objects[s3object].Key) === 'string' && s3objects[s3object].Size !== 0) {
-                    const option = document.createElement('option');
-                    option.value = s3objects[s3object].Key;
-                    option.text = s3objects[s3object].Key.split('/').slice(-1);
-                    s3HTMLElement.appendChild(option);
-            }
-            //Restart loop if object contains other objects.
-            if ( Object.keys(s3objects[s3object]).length > 3 ) {
-                traverseJson(s3objects[s3object]);
-            }
-        }
-    };
-    traverseJson(s3Keys);
-    //Insert empty value as a placeholder.
-    const option = document.createElement('option');
-    option.value = '';
-    option.text = 'Please select file';
-    s3HTMLElement.appendChild(option);
-    s3HTMLElement.value = '';
-};
-
 //Construct directory in UI
 function s3InitializeUI(s3Keys, search) {
     deleteS3Target = null;
@@ -95,6 +68,15 @@ function s3InitializeUI(s3Keys, search) {
     }
     s3FilepickerUI.innerHTML = '';
     var s3ListRunningId = 0;
+    //Clear download list and insert placeholder.
+    const filepickDropdown = document.getElementById('S3_Filepick_Select');
+    filepickDropdown.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.text = 'Please select file';
+    filepickDropdown.appendChild(defaultOption);
+    filepickDropdown.value = '';
+    //Buttons and entries within UI are created here.
     for (s3Entry in s3Keys) {
         //Ensure we have a valid S3 Object, and Key is not itself a directory within. 
         if (s3Entry != 'total' && s3Keys[s3Entry].hasOwnProperty('Key') && (typeof s3Keys[s3Entry].Key) === 'string') {
@@ -115,6 +97,10 @@ function s3InitializeUI(s3Keys, search) {
             //Pretty icons for pretty buttons
             if (s3Keys[s3Entry].Size > 0) {
                 var IconSrc = 'graphics/FileIconCC.svg';
+                const option = document.createElement('option');
+                option.value = s3Keys[s3Entry].Key;
+                option.text = s3Keys[s3Entry].Key.split('/').slice(-1);
+                filepickDropdown.appendChild(option); 
             } else {
                 var IconSrc = 'graphics/DirIconCC.svg';
             }
@@ -153,6 +139,7 @@ function s3UIHandleButton(s3Key) {
                     if (document.getElementById('S3_Download').style.display === 'none') {
                         displayItemById('S3_Download'); 
                     }
+                    event.stopPropagation();
                     return
                 }
                 //Set global variables.
@@ -184,6 +171,7 @@ function s3UIHandleButton(s3Key) {
                     document.getElementById(`${i}_nav_btn`).addEventListener( 'click', function(){ s3NavButton(i, localTarget) } );
                 }
                 s3InitializeUI(s3Objects[s3Object], false);
+                event.stopPropagation();
                 return
             } else if ( (typeof s3Objects[s3Object]) === 'object' && Object.keys(s3Objects[s3Object]).length > 3 ) {
                 traverseJson(s3Objects[s3Object], s3Key);
@@ -195,7 +183,6 @@ function s3UIHandleButton(s3Key) {
 
 //Code to handle events in nav bar.
 function s3NavButton(targetLvl, s3Key) {
-    console.log(s3Key);
     removeElementById('S3_UI_Msg');
     document.getElementById('S3_Filepick_Select').value = '';
     if (targetLvl === dirLvl) {
@@ -226,6 +213,7 @@ function s3NavButton(targetLvl, s3Key) {
 //Send array of keys back to server for S3 API calls.
 //Currently only used for deleteObj.
 function sendS3Keys(targetUrl, s3Array) {
+    console.log(s3Array.length);
     fetch(targetUrl, {
         method: 'POST',
         headers: {
@@ -301,7 +289,6 @@ function addDir() {
     } else if (dirname.startsWith('/')) {
         dirname = dirname.slice(1);
     }
-    console.log(dirname);
     if (!sanitize(dirname)) {
         window.alert('Only alphanumeric character allowed as well as ! . _ * \' () - ');
         return
@@ -392,8 +379,6 @@ function loadExisting() {
             fuzzySearchList = s3Object.s3List;
             dirLvl = 0;
             deleteS3Target = null;
-            const filepickDropdown = document.getElementById('S3_Filepick_Select');
-            fillS3Download(filepickDropdown, s3KeysGlobalVar);
             s3InitializeUI(s3KeysGlobalVar, false);
         })
         .catch(e => console.error('Error fetching data:',e));
@@ -406,9 +391,6 @@ function renewList() {
         .then(newS3Object => {
             s3KeysGlobalVar = newS3Object.s3Dir;
             fuzzySearchList = newS3Object.s3List;
-            const filepickDropdown = document.getElementById('S3_Filepick_Select');
-            filepickDropdown.innerHTML = '';
-            fillS3Download(filepickDropdown, s3KeysGlobalVar);
             removeElementById('loading');
         })
         .catch(e => {

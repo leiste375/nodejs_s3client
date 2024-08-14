@@ -3,3 +3,6 @@ node_modules/
 *.txt
 .env
 *.DS_Store
+base_directory/
+large_storage_test.sh
+Performance.xlsx

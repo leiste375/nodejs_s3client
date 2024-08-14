@@ -88,6 +88,70 @@ const s3Client = new S3Client({
     forcePathStyle: true,
 });
 
+/*
+//Async function to get list of objects in storage
+async function s3Sync(client) {
+    const s3ObjectList = path.join(__dirname, '/downloads/s3ObjectList.json');
+    const oldList = JSON.parse(fs.readFileSync(s3ObjectList, 'utf8'));
+    const newList = [];
+    let i = 0;
+    for await (const data of paginateListObjectsV2({ client }, { Bucket: process.env.S3_BUCKET_NAME } )) {
+        console.log(oldList.length);
+        if (oldList.length == 0 || oldList.length == undefined) {
+            newList.push(...(data.Contents ?? []));
+            continue;
+        }
+        runningList = data.Contents ?? [];
+        for (entry in runningList) {
+            if (runningList[entry].Key === oldList[i].Key) {
+                console.log(runningList[entry].Key);
+            };
+            i++;
+        };
+    }
+    const jsonFiltered = newList.map(item => ({ Key: item.Key, Size: item.Size, LastModified: item.LastModified }));
+    const s3Objects = JSON.stringify(jsonFiltered, null, 4);
+    fs.writeFile(path.join(__dirname, '/downloads/s3ObjectList.json'), s3Objects, 'utf-8', function(e) {
+        if (e) {
+            console.log(e);
+        }
+    });
+    
+    return jsonFiltered;
+};
+
+//Create a directory structure out of a S3 object list.
+function S3DirStructure(s3ObjList) {
+    const finalJson = {};
+    s3ObjList.forEach(s3Entry => {
+        //Split Key string and loop through resulting list.
+        const path = s3Entry.Key.split("/").filter(part => part !== '');
+        let runningJson = finalJson;
+        //Handle object keys starting with a slash
+        if (s3Entry.Key.startsWith('/')) {
+            path[0] = `/${path[0]}`;
+        }
+        path.forEach((part, index) => {
+            //console.log(part);
+            //Assign entry to last part of the path or create new array if applicable. 
+            if (index === path.length - 1) {
+                //console.log(s3Entry);
+                runningJson[part] = s3Entry;
+            } else if (!runningJson[part]) {
+                runningJson[part] = {};
+            }
+            runningJson = runningJson[part];
+        });
+    });
+    const jsonData = JSON.stringify(finalJson, null, 4);
+    fs.writeFile(path.join(__dirname, '/downloads/s3DirStructure.json'), jsonData, 'utf-8', function(e) {
+        if (e) {
+            console.log(e);
+        }
+    });
+    return finalJson;
+};
+*/
 //Async function to get list of objects in storage
 async function s3Sync(client) {
     const objList = [];
@@ -369,10 +433,13 @@ app.get('/filepicker1', handleLogin, async (req, res) => {
 });
 app.get('/filepicker2', handleLogin, async (req, res) => {
     try {
+        const time1 = performance.now();
         let syncedS3Objects = await s3Sync(s3Client);
         //Clone object to avoid it being overwritten
         const s3ObjectsClone = JSON.parse(JSON.stringify(syncedS3Objects));
         const s3Dir = S3DirStructure(syncedS3Objects);
+        const time2 = performance.now();
+        console.log(`Old function took ${time2 - time1} ms to execute.`)
         res.status(200).json({ s3Dir: s3Dir, s3List: s3ObjectsClone });
     } catch(e) {
         console.error('Error while updating list:',e)

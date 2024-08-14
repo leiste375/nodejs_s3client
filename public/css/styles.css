@@ -27,9 +27,9 @@ body {
     background-color: rgba(255, 255, 255, 0);
     text-align: center;
 }
-button, input, select, label, h1, h2, h3, p, .Filepick_UI_Header {
+button, input, select, label, h1, h2, h3, p, .Filepick_UI_Header, .S3_Filebrowser_UI {
     position: relative;
-    z-index: 2
+    z-index: 2;
 }
 .login_form {
     margin: auto;
@@ -83,6 +83,7 @@ input:focus {outline:none;}
     display: flex;
     flex-wrap: wrap;
     margin: auto;
+    margin-top: 2px;
     padding-top: 1em;
     overflow-y: auto;
     max-height: 80vh;
@@ -98,6 +99,7 @@ input:focus {outline:none;}
     height: 100px;
     margin: .5em auto .5em auto;
     position: relative;
+    z-index: 3 !important;
 }
 .S3_UI_Button_Inner {
     box-sizing: border-box;
