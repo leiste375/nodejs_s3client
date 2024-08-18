@@ -27,7 +27,7 @@
                     <button id="Download" title="Open download menu" class="function_button" style="order: 3" onclick="displayItemById('S3_Download')"><img src="graphics/DownloadCC.svg"></button>
                     <button id="Upload_File" title="Upload file to current directory" class="function_button" style="order: 4" onclick="displayItemById('S3_Upload')"><img src="graphics/UploadFileCC.svg"></button>
                     <button id="Add_directory" title="Add folder to current directory" class="function_button" style="order: 5" onclick="displayItemById('S3_Create_Dir')" style="order: 3"><img src="graphics/AddDirIconCC.svg"></button>
-                    <button id="Delete object" title="Delete object" class="function_button" onclick="deleteObj()" style="order: 6"><img src="graphics/DeleteModifiedGNULGPL.svg"></button>
+                    <button id="Delete object" title="Delete object" class="function_button" onclick="s3Ops('/delete')" style="order: 6"><img src="graphics/DeleteModifiedGNULGPL.svg"></button>
                     <div id="S3_Progress" class="S3_Progress" style="display: none; order: 7">
                         <progress id="S3_Upload_Progress_Bar" class="S3_Upload_Progress_Bar" max="100"></progress>
                     </div>
@@ -46,10 +46,12 @@
                     <button type="submit" id="S3_Create_Dir_Submit" onclick="addDir()">New folder</button>
                 </div>
                 <div id="S3_Download" class="S3_Download S3_Function" style="display: none">
-                <form action="/download" method="get">
-                    <select id="S3_Filepick_Select" type="text" class="filename" name="filename" data-style="btn-info" placeholder="Choose object.">
-                    </select>
-                    <button type="submit">Download</button><button type="button" onclick="copyText('S3_Filepick_Select', '/download?filename=', true)">Copy link</button>
+                <button type="button" onclick="s3Ops('/download')">Download</button><button type="button" onclick="copyText('S3_Filepick_Select', '/download?filename=', true)">Copy link</button>
+                <form id="singleDl" action="/download" method="get">
+                    <input id="S3_Filepick_Select" type="text" class="filename" name="filename" data-style="btn-info" placeholder="Choose object." style="display: none;">
+                </form>
+                <form id="multiDl" action="/multidownload" method="POST" style="display: none;">
+                    <input type="hidden" name="array" id="multiDlInput">
                 </form>
                 </div>
             </div>

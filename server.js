@@ -8,6 +8,8 @@ const session = require('express-session');
 const { S3Client, GetObjectCommand, PutObjectCommand, paginateListObjectsV2, DeleteObjectCommand, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
 const { Upload } = require("@aws-sdk/lib-storage");
 const {v4: uuidv4 } = require('uuid');
+const archiver = require('archiver');
+const stream = require('stream');
 const clients = {} //Store sessionIds
 const app = express();
 require('dotenv').config();
@@ -311,8 +313,6 @@ app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
             Key: s3_key,
             Body: req.file.buffer,
         };
-        //const command = new PutObjectCommand(params);
-        //await s3Client.send(command);
         const parallelUploads = new Upload({
             client: s3Client,
             params: params,
@@ -351,7 +351,7 @@ app.post('/createdir', handleLogin, async(req, res) => {
     }
 });
 
-app.get('/download', handleLogin, async (req, res) => {
+app.get('/download', async (req, res) => {
     try {
         const filename = req.query.filename;
         if (!filename) {
@@ -363,11 +363,49 @@ app.get('/download', handleLogin, async (req, res) => {
         };
         const command = new GetObjectCommand(params);
         const data = await s3Client.send(command);
+        console.log(filename.split('/').slice(-1)[0]);
+        res.setHeader('Content-Disposition', `attachment; filename="${filename.split('/').slice(-1)[0]}"`);
+        res.setHeader('Content-Type', data.ContentType ?? 'application/octet-stream');
+        res.setHeader('Content-Length', data.ContentLength);
 
-        res.setHeader('Content-Disposition', `attachment; filename="${filename.split('/').slice(-1)}"`);
-        res.setHeader('Content-Type', data.ContentType);
         data.Body.pipe(res);
     } catch (e) {
+        console.log(e);
+        res.status(500).send(e.message);
+    }
+});
+app.post('/multidownload', handleLogin, async (req, res) => {
+    try {
+        const array = req.body.array ? JSON.parse(req.body.array) : null;
+        if (!array) {
+            return res.status(400).send('Files for download required');
+        }
+        res.setHeader('Content-Disposition', 'attachment; filename="files.zip"');
+        res.setHeader('Content-Type', 'application/zip');
+        //res.setHeader('Transfer-Encoding', 'chunked');
+        //res.flushHeaders();
+
+        const archive = archiver('zip', {zlib: {level: 9 } });
+        archive.pipe(res);
+
+        async function file(key) {
+            let s3Key = key.Key;
+            let s3Name = s3Key.endsWith('/') ? s3Key.split('/').slice(-2)[0] : s3Key.split('/').slice(-1)[0];
+            console.log(s3Name);
+            const params = {
+                Bucket: process.env.S3_BUCKET_NAME,
+                Key: s3Key,
+            };
+            const command = new GetObjectCommand(params);
+            const data = await s3Client.send(command);
+            archive.append(data.Body, { name: s3Name });
+
+        };
+
+        await Promise.all(array.map(file));
+        await archive.finalize();
+    } catch (e) {
+        console.log(e);
         res.status(500).send(e.message);
     }
 });
@@ -396,7 +434,7 @@ app.post('/delete', handleLogin, async (req, res) => {
             const command = new DeleteObjectsCommand(params);
             await s3Client.send(command)
         }
-        return res.status(200).send('OK');
+        return res.status(200).send('Deletion succesful!');
     } catch (e) {
         console.log(e);
         res.status(500).send(e);

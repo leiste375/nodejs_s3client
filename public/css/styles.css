@@ -52,7 +52,7 @@ button, input, select, label, h1, h2, h3, p, .Filepick_UI_Header, .S3_Filebrowse
     padding: 4px 4px 4px 4px;
     font-size: 14px;
 }
-.login_form button:hover, .s3_form button:hover {
+.login_form button:hover, .Filepick_UI_Header button:hover:not(.navbar_focused) {
     box-shadow: 0 0 3px 2px var(--dark-green);
     transition: .1s;
 }
@@ -67,7 +67,7 @@ button, input, select, label, h1, h2, h3, p, .Filepick_UI_Header, .S3_Filebrowse
     transition: .4s;
 }
 input:focus {outline:none;}
-.login_form input:focus, .s3_form input[type=text]:focus, .S3_Filebrowser_UI button:focus {
+.login_form input:focus, .s3_form input[type=text]:focus, .filebrowser_focused {
     box-shadow: 0 0 3px 3px var(--light-green);
     transition: .1s;
 }
@@ -90,7 +90,6 @@ input:focus {outline:none;}
 }
 .S3_Filebrowser_UI button {
     padding: .25em .3em .25em .3em;
-    transition: .4s;
     background: white;
     border-radius: 2px;
     border: 1px solid var(--grey-5);
@@ -147,7 +146,7 @@ input:focus {outline:none;}
     font-size: 14px;
     padding: 1px 4px 1px 4px;
 }
-.S3_UI_NavBar button:focus {
+.navbar_focused {
     box-shadow: 0 0 3px 4px var(--dark-green);
     transition: .1s;
 }
@@ -161,7 +160,7 @@ input:focus {outline:none;}
     text-align: left;
     order: 99;
 }
-.S3_Filebrowser_UI button:hover:not(:focus) {
+.S3_Filebrowser_UI button:hover:not(.filebrowser_focused) {
     box-shadow: 0 0 2px 2px var(--light-green);
     transition: .2s;
 }
@@ -192,6 +191,7 @@ input:focus {outline:none;}
 .S3_Download select {
     width: 100%;
     order: 1;
+    max-height: 3.2em;
 }
 .S3_Create_Dir button, .S3_Download button {
     margin: 5px 0 5px 10px;
