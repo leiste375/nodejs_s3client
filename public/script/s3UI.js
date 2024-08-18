@@ -51,7 +51,6 @@ function displayItemById(htmlId) {
 }
 
 function classControl(htmlId, classString) {
-    console.log('triggered');
     if (htmlId != undefined) {
         const htmlClass = document.getElementById(htmlId).classList;
         if (htmlClass.contains(classString)) {
@@ -133,13 +132,6 @@ function s3InitializeUI(s3Keys, search) {
 //Code to handle navigation and forward appropriate values to other functions.
 function s3UIHandleButton(s3Key, buttonId) {
     classControl(buttonId, 'filebrowser_focused');
-    const lastNavId = document.getElementById('S3_UI_NavBar').lastChild.id;
-    const lastNavButton = document.getElementById(lastNavId);
-    if (lastNavButton != null) {
-        if (lastNavButton.classList.contains('navbar_focused')) {
-            lastNavButton.classList.remove('navbar_focused');
-        }
-    }
     //Ensure that no active messages remain in navigation bar.
     removeElementById('S3_UI_Msg');
     //Check if target is a file or a directory and act accordingly.
@@ -151,10 +143,19 @@ function s3UIHandleButton(s3Key, buttonId) {
                     document.getElementById('S3_UI_NavBar').insertAdjacentHTML('beforeend', '<p id=\"S3_UI_Msg\">Directory empty.</p>');
                 //If object is file then this is quick.
                 } else if (Object.keys(s3Objects[s3Object]).length <= 3 && s3Objects[s3Object].Size > 0) {
+                    const lastNavId = document.getElementById('S3_UI_NavBar').lastChild.id;
+                    const lastNavButton = document.getElementById(lastNavId);
+                    if (lastNavButton != null) {
+                        if (lastNavButton.classList.contains('navbar_focused')) {
+                            lastNavButton.classList.remove('navbar_focused');
+                        }
+                    }
                     if (!Array.isArray(s3Targets)) {
                         s3Targets = [s3Key];
-                    } else {
+                    } else if (!s3Targets.includes(s3Key)) {
                         s3Targets.push(s3Key);
+                    } else if (s3Targets.includes(s3Key)) {
+                        s3Targets = s3Targets.filter(key => key !== s3Key);
                     }
                     //If in an iframe, dispatch event back to overarching site.
                     if (iframeResult === true) {
@@ -304,7 +305,11 @@ function s3Ops(targetPath) {
     } else if (Array.isArray(s3Targets)) {
         let targetString = '\n';
         s3Targets.forEach((key, i) => {
-            targetString = targetString.concat(`${key}\n`);
+            if (i <= 9) {
+                targetString = targetString.concat(`${key}\n`);
+            } else if (i === 10) {
+                targetString = targetString.concat('...');
+            }
             collectedS3Keys.push({ Key: key });
         });
         if (window.confirm(`Do you want to ${ops} ${targetString}`)) {
@@ -502,7 +507,7 @@ function fuzzysearch() {
         fileUI.style.display= 'flex';
         return
     }
-    let searchResult = fuzzysort.go(searchTarget, fuzzySearchList, {key: 'Key'}, {limit: 100, threshold: .7});
+    let searchResult = fuzzysort.go(searchTarget, fuzzySearchList, {key: 'Key'}, {limit: 100, threshold: .9});
     const searchS3Objects = {};
     for (obj in searchResult) {
         searchS3Objects[obj] = searchResult[obj].obj;

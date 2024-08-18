@@ -46,7 +46,8 @@
                     <button type="submit" id="S3_Create_Dir_Submit" onclick="addDir()">New folder</button>
                 </div>
                 <div id="S3_Download" class="S3_Download S3_Function" style="display: none">
-                <button type="button" onclick="s3Ops('/download')">Download</button><button type="button" onclick="copyText('S3_Filepick_Select', '/download?filename=', true)">Copy link</button>
+                <button type="button" onclick="s3Ops('/download')">Download</button>
+                <button id="Copy_Link" type="button" onclick="copyText('S3_Filepick_Select', '/download?filename=', true)" disabled>Copy link</button>
                 <form id="singleDl" action="/download" method="get">
                     <input id="S3_Filepick_Select" type="text" class="filename" name="filename" data-style="btn-info" placeholder="Choose object." style="display: none;">
                 </form>

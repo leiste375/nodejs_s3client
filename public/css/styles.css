@@ -31,6 +31,12 @@ button, input, select, label, h1, h2, h3, p, .Filepick_UI_Header, .S3_Filebrowse
     position: relative;
     z-index: 2;
 }
+button:disabled, button[disabled] {
+    background: var(--grey-4) !important;
+}
+button:disabled:hover, button[disabled]:hover {
+    box-shadow: none !important;
+}
 .login_form {
     margin: auto;
     width: 50%;

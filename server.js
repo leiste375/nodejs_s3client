@@ -154,6 +154,7 @@ function S3DirStructure(s3ObjList) {
     return finalJson;
 };
 */
+
 //Async function to get list of objects in storage
 async function s3Sync(client) {
     const objList = [];
