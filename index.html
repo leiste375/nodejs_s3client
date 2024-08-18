@@ -18,7 +18,7 @@
         <h3>S3 Filebrowser</h3>
         <div id="S3_UI_Functions_Container" class="S3_UI_Functions_Container">
             <div id="S3_UI_NavBar" class="S3_UI_NavBar">
-                <button id="Home_0_nav_btn" onclick="s3NavButton(0, '')"><img src="graphics/OpenDirIconCC.svg">Home</button>
+                <button id="Hom3_0_nav_btn" onclick="s3NavButton(0, '')"><img src="graphics/OpenDirIconCC.svg">Home</button>
             </div>
                 <div id="S3_Functions" class="S3_Functions">
                 <div id="S3_Function_Buttons" class="S3_Function_Buttons">
@@ -47,7 +47,7 @@
                 </div>
                 <div id="S3_Download" class="S3_Download S3_Function" style="display: none">
                 <button type="button" onclick="s3Ops('/download')">Download</button>
-                <button id="Copy_Link" type="button" onclick="copyText('S3_Filepick_Select', '/download?filename=', true)" disabled>Copy link</button>
+                <button id="Copy_Link" type="button" onclick="copyText(s3Targets[0], '/download?filename=', true)" disabled>Copy link</button>
                 <form id="singleDl" action="/download" method="get">
                     <input id="S3_Filepick_Select" type="text" class="filename" name="filename" data-style="btn-info" placeholder="Choose object." style="display: none;">
                 </form>

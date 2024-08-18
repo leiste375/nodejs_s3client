@@ -145,10 +145,8 @@ function s3UIHandleButton(s3Key, buttonId) {
                 } else if (Object.keys(s3Objects[s3Object]).length <= 3 && s3Objects[s3Object].Size > 0) {
                     const lastNavId = document.getElementById('S3_UI_NavBar').lastChild.id;
                     const lastNavButton = document.getElementById(lastNavId);
-                    if (lastNavButton != null) {
-                        if (lastNavButton.classList.contains('navbar_focused')) {
-                            lastNavButton.classList.remove('navbar_focused');
-                        }
+                    if (lastNavButton != null && lastNavButton.classList.contains('navbar_focused')) {
+                        lastNavButton.classList.remove('navbar_focused');
                     }
                     if (!Array.isArray(s3Targets)) {
                         s3Targets = [s3Key];
@@ -156,6 +154,11 @@ function s3UIHandleButton(s3Key, buttonId) {
                         s3Targets.push(s3Key);
                     } else if (s3Targets.includes(s3Key)) {
                         s3Targets = s3Targets.filter(key => key !== s3Key);
+                    }
+                    if (s3Targets.length === 1) {
+                        document.getElementById('Copy_Link').disabled = false;
+                    } else {
+                        document.getElementById('Copy_Link').disabled = true;
                     }
                     //If in an iframe, dispatch event back to overarching site.
                     if (iframeResult === true) {
@@ -166,6 +169,8 @@ function s3UIHandleButton(s3Key, buttonId) {
                     }
                     if (document.getElementById('S3_Download').style.display === 'none') {
                         displayItemById('S3_Download'); 
+                    } else if (s3Targets == 0) {
+                        clearFunctionForms();
                     }
                     event.stopPropagation();
                     return
@@ -446,13 +451,12 @@ function renewList() {
         })
 }
 
-function copyText(htmlElement, endpoint, toClipboard) {
+function copyText(targetString, endpoint, toClipboard) {
     const localDomain = window.location.origin.toString();
     if (!localDomain.endsWith('/')) {
         localDomain.concat('/');
     }
-    const targetText = document.getElementById(htmlElement).value;
-    const link = `${localDomain}${endpoint}${targetText}`;
+    const link = `${localDomain}${endpoint}${targetString}`;
     if (toClipboard === true) {
         navigator.clipboard.writeText(link);
         alert('Copied link to clipboard.');
@@ -479,7 +483,8 @@ async function initializeIframe() {
                     return
                 }
                 selectElement.onchange = function() {
-                    const selectedLink = copyText(message.elementId, '/download?filename=', false);
+                    const inputString = document.getElementById(message.elementId).value;
+                    const selectedLink = copyText(inputString, '/download?filename=', false);
                     // Send the selected value back to the parent page
                     event.source.postMessage({
                         action: 'valueChanged',

@@ -352,7 +352,7 @@ app.post('/createdir', handleLogin, async(req, res) => {
     }
 });
 
-app.get('/download', async (req, res) => {
+app.get('/download', handleLogin, async (req, res) => {
     try {
         const filename = req.query.filename;
         if (!filename) {
