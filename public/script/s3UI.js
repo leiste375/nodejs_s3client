@@ -61,6 +61,19 @@ function classControl(htmlId, classString) {
     }
 }
 
+//Source: https://stackoverflow.com/a/37826698
+function splitArray(chunkSize, inputArray) {
+    const chunks = inputArray.reduce((resultArray, item, index) => {
+        const chunkIndex = Math.floor(index/chunkSize);
+        if (!resultArray[chunkIndex]) {
+            resultArray[chunkIndex] = [];
+        }
+        resultArray[chunkIndex].push(item);
+        return resultArray;
+    }, []);
+    return chunks;
+}
+
 //Ensure that no illegal characters are entered.
 //See https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html for reference.
 function sanitize(inputString) {
@@ -137,6 +150,7 @@ function s3UIHandleButton(s3Key, buttonId) {
     //Check if target is a file or a directory and act accordingly.
     const traverseJson = (s3Objects, s3Key) => {
         for (s3Object in s3Objects) {
+            //console.log(s3Object);
             if (s3Objects[s3Object].hasOwnProperty('Key') && s3Objects[s3Object].Key === s3Key) {
                 //Check for empty directory
                 if (Object.keys(s3Objects[s3Object]).length <= 3 && s3Objects[s3Object].Size === 0) {
@@ -246,38 +260,50 @@ function s3NavButton(targetLvl, s3Key) {
 
 //Send array of keys back to server for S3 API calls.
 function sendS3Keys(targetUrl, s3Array) {
-    if (targetUrl.includes('download') && s3Array.length > 1) {
+    const singleDl = (targetStr) => {
         removeElementById('loading');
-        document.getElementById('multiDlInput').value = JSON.stringify(s3Array);
-        document.getElementById('multiDl').submit();
-    } else if (targetUrl.includes('download')) {
-        removeElementById('loading');
-        document.getElementById('S3_Filepick_Select').value = s3Array[0].Key;
+        document.getElementById('S3_Filepick_Select').value = targetStr;
         document.getElementById('singleDl').submit();
-    } else {
-        fetch(targetUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ array: s3Array })
-        })
-        .then(response => { 
-            if (response.ok){
-                renewList();
-                response.text().then(text => {
-                window.confirm(text);
-                });
-                removeElementById('loading');
-            } else {
-                console.log('Error while performing operation');
-                removeElementById('loading');
-            }
-        })
-        .catch(e => { 
-            window.alert(e) 
-        });
     }
+    if (targetUrl.includes('download') && s3Array.length === 1) {
+        singleDl(s3Array[0].Key);
+        removeElementById('loading');
+        return
+    }
+    s3Arrays = splitArray(1000, s3Array);
+    console.log(s3Array);
+    for (entry in s3Arrays) {
+        console.log(entry);
+        if (targetUrl.includes('download') && s3Arrays[entry].length > 1) {
+            document.getElementById('multiDlInput').value = JSON.stringify(s3Arrays[entry]);
+            document.getElementById('multiDl').submit();
+        } else if (targetUrl.includes('download') && s3Arrays[entry].length === 1) {
+            singleDl(s3Arrays[entry][0].Key)
+        } else {
+            fetch(targetUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ array: s3Arrays[entry] })
+            })
+            .then(response => { 
+                if (response.ok){
+                    response.text().then(text => {
+                    window.confirm(text);
+                    });
+                } else {
+                    console.log('Error while performing operation');
+                }
+            })
+            .catch(e => {
+                renewList();
+                window.alert(e) 
+            });
+        }
+    }
+    renewList();
+    removeElementById('loading');
 }
 
 //Read all keys to send back to server to handle deletion of both directories and single files.
