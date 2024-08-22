@@ -1,5 +1,6 @@
 downloads/
 node_modules/
+env/
 *.txt
 .env
 *.DS_Store

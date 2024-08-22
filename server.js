@@ -364,7 +364,6 @@ app.get('/download', handleLogin, async (req, res) => {
         };
         const command = new GetObjectCommand(params);
         const data = await s3Client.send(command);
-        console.log(filename.split('/').slice(-1)[0]);
         res.setHeader('Content-Disposition', `attachment; filename="${filename.split('/').slice(-1)[0]}"`);
         res.setHeader('Content-Type', data.ContentType ?? 'application/octet-stream');
         res.setHeader('Content-Length', data.ContentLength);
@@ -392,7 +391,6 @@ app.post('/multidownload', handleLogin, async (req, res) => {
         async function file(key) {
             let s3Key = key.Key;
             let s3Name = s3Key.endsWith('/') ? s3Key.split('/').slice(-2)[0] : s3Key.split('/').slice(-1)[0];
-            console.log(s3Name);
             const params = {
                 Bucket: process.env.S3_BUCKET_NAME,
                 Key: s3Key,

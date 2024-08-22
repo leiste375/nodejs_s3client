@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1"
+   viewBox="0 0 36 28"
+   enable-background="new 0 0 48 48"
+   id="svg3"
+   sodipodi:docname="DashboardCC.svg"
+   width="36"
+   height="28"
+   inkscape:version="1.3 (0e150ed, 2023-07-21)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#999999"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.9166667"
+     inkscape:cx="17.79661"
+     inkscape:cy="14.033898"
+     inkscape:window-width="1312"
+     inkscape:window-height="431"
+     inkscape:window-x="0"
+     inkscape:window-y="565"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg3" />
+  <g
+     fill="#607d8b"
+     id="g3"
+     transform="translate(-6,-10)">
+    <rect
+       x="6"
+       y="22"
+       width="36"
+       height="4"
+       id="rect1" />
+    <rect
+       x="6"
+       y="10"
+       width="36"
+       height="4"
+       id="rect2" />
+    <rect
+       x="6"
+       y="34"
+       width="36"
+       height="4"
+       id="rect3" />
+  </g>
+</svg>

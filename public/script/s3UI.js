@@ -89,6 +89,32 @@ function dirLVlFromKey(splitPath) {
     }
 }
 
+function fillDropdown(htmlId, inputArray) {
+    
+}
+
+function resizeS3Form() {
+    const root_var = document.querySelector(':root')
+    const form_width = `${(window.innerWidth-300)}px`
+    root_var.style.setProperty('--form-width', form_width);
+    console.log('Set!');
+}
+function dashControl() {
+    classControl('S3_Dashboard', 'dash_transform_active');
+    classControl('s3_form', 's3_form_dash')
+}
+
+//Source: https://github.com/louisremi/jquery-smartresize
+function on_resize(c,t) {
+    onresize=function(){
+        clearTimeout(t);
+        t=setTimeout(c,100);
+        console.log('Resize!');
+        resizeS3Form();
+        };
+    return c
+};
+
 //Construct directory in UI
 function s3InitializeUI(s3Keys, search) {
     s3Targets = [];
@@ -456,6 +482,7 @@ function loadExisting() {
         .then(s3Object => {
             s3KeysGlobalVar = s3Object.s3Dir;
             fuzzySearchList = s3Object.s3List;
+            //s3Buckets = newS3Object.s3Buckets;
             dirLvl = 0;
             s3Targets = [];
             s3InitializeUI(s3KeysGlobalVar, false);
@@ -470,6 +497,7 @@ function renewList() {
         .then(newS3Object => {
             s3KeysGlobalVar = newS3Object.s3Dir;
             fuzzySearchList = newS3Object.s3List;
+            s3Buckets = newS3Object.s3Buckets;
             removeElementById('loading');
         })
         .catch(e => {
@@ -550,3 +578,6 @@ loadExisting();
 renewList();
 uploadInput = '/';
 initializeIframe();
+resizeS3Form();
+window.addEventListener('resize', resizeS3Form);
+

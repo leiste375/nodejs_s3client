@@ -9,11 +9,14 @@
     --grey-3: #94959a;
     --grey-4: #bfc0c2;
     --grey-5: #dbdce0;
+
+    --form-width: 85%;
 }
 
 body {
     background-color: white;
     font-family: 'andale mono', monospace;
+    overflow: hidden;
 }
 /*Invisible "background" element to capture clicks on non-interactive elements*/
 .background {
@@ -50,7 +53,7 @@ button:disabled:hover, button[disabled]:hover {
     margin: 20px auto 0 auto;
     display: block;
 }
-.login_form button, .s3_form button {
+.login_form button, .s3_form button, .dash_body button {
     background: var(--light-green);
     border-radius: 4px;
     border: none;
@@ -58,7 +61,7 @@ button:disabled:hover, button[disabled]:hover {
     padding: 4px 4px 4px 4px;
     font-size: 14px;
 }
-.login_form button:hover, .Filepick_UI_Header button:hover:not(.navbar_focused) {
+.login_form button:hover, .Filepick_UI_Header button:hover:not(.navbar_focused), .dash_body button:hover {
     box-shadow: 0 0 3px 2px var(--dark-green);
     transition: .1s;
 }
@@ -81,11 +84,18 @@ input:focus {outline:none;}
     margin-bottom: 5px;
 }
 .s3_form {
-    width: 90%;
-    margin:auto;
+    width: 85%;
+    margin :auto;
+    position: absolute;
+    left: 7.5%;
+}
+.s3_form_dash {
+    position: absolute;
+    left:0;
+    width: var(--form-width);
 }
 .S3_Filebrowser_UI {
-    width: 75%;
+    width: 80%;
     display: flex;
     flex-wrap: wrap;
     margin: auto;
@@ -120,7 +130,7 @@ input:focus {outline:none;}
     height: 32px;
 }
 .Filepick_UI_Header {
-    width: 90%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -259,4 +269,48 @@ input:focus {outline:none;}
     100% { transform: 
         rotate(360deg)
     }
+}
+
+.S3_Dashboard {
+    top: 0;
+    right: -300px;
+    position: absolute;
+    height: 100vh;
+    width: 300px;
+    box-shadow: -2px 0 2px -2px var(--grey-1);
+}
+.dash_transform {
+    -webkit-transition: all .5s ease;  
+    -moz-transition: all .5s ease;  
+    -o-transition: all .5s ease;  
+    -ms-transition: all .5s ease;  
+    transition: all .5s ease;
+}
+.dash_transform_active {
+    right: 0;
+}
+.dash_button {
+    width: 50px;
+    height: 50px;
+    background: none !important;
+    border: 1px solid var(--grey-4);
+    border-top: none;
+    border-left: none;
+}
+.dash_button img {
+    position: absolute;
+    top: 50%;
+    left: 50%
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    max-width: 35px;
+    max-height: 35px;
+}
+.dash_button img:hover {
+    transition: .2s;
+    transform: translate(-50%, -50%) scale(1.25);
+}
+.dash_body {
+    margin: 10px 5px 5px 5px;
 }
