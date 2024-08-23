@@ -296,6 +296,7 @@ function sendS3Keys(targetUrl, s3Array) {
     const singleDl = (targetStr) => {
         removeElementById('loading');
         document.getElementById('S3_Filepick_Select').value = targetStr;
+        document.getElementById('storage_single_dl').value = currentStorage;
         document.getElementById('singleDl').submit();
     }
     if (targetUrl.includes('download') && s3Array.length === 1) {
@@ -449,6 +450,7 @@ async function uploadFile() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('filedir', targetDir);
+    formData.append('storage', currentStorage);
     //Set up progress tracker.
     //TODO: Implement @aws/xhr-http-handeler for smoother progress tracking.
     const progressBar = document.getElementById('S3_Upload_Progress_Bar');
@@ -532,7 +534,7 @@ function copyText(targetString, endpoint, toClipboard) {
     if (!localDomain.endsWith('/')) {
         localDomain.concat('/');
     }
-    const link = `${localDomain}${endpoint}${targetString}`;
+    const link = `${localDomain}${endpoint}${targetString}&storage=${currentStorage}`;
     if (toClipboard === true) {
         navigator.clipboard.writeText(link);
         alert('Copied link to clipboard.');

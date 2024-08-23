@@ -325,17 +325,24 @@ app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
         }
 
         let filedir = String(req.body.filedir);
+        const storage = req.body.storage;
+        if (!filedir) {
+            return res.status(400).send('Target directory required.')
+        } else if (!storage) {
+            return res.status(400).send('Storage required.')
+        }
         filedir = handleDir(filedir);
         const filename = req.file.originalname;
         const s3_key = filedir.concat(filename);
 
+        const newClient = createS3Client(storage);
         const params = {
-            Bucket: process.env.S3_BUCKET_NAME,
+            Bucket: s3Storages[storage]['BUCKET'],
             Key: s3_key,
             Body: req.file.buffer,
         };
         const parallelUploads = new Upload({
-            client: s3Client,
+            client: newClient,
             params: params,
             queueSize: 4,
             partSize: 1024 * 1024 * 5,
@@ -381,20 +388,27 @@ app.post('/createdir', handleLogin, async(req, res) => {
 app.get('/download', handleLogin, async (req, res) => {
     try {
         const filename = req.query.filename;
+        console.log(filename);
+        const storage = req.query.storage;
         if (!filename) {
             return res.status(400).send('Filename is required');
+        } else if (!storage) {
+            return res.status(400).send('Storage required.');
         }
+
+        const newClient = createS3Client(storage);
         const params = {
-            Bucket: process.env.S3_BUCKET_NAME,
+            Bucket: s3Storages[storage]['BUCKET'],
             Key: filename,
         };
         const command = new GetObjectCommand(params);
-        const data = await s3Client.send(command);
+        const data = await newClient.send(command);
         res.setHeader('Content-Disposition', `attachment; filename="${filename.split('/').slice(-1)[0]}"`);
         res.setHeader('Content-Type', data.ContentType ?? 'application/octet-stream');
         res.setHeader('Content-Length', data.ContentLength);
 
         data.Body.pipe(res);
+        newClient.destroy();
     } catch (e) {
         console.log(e);
         res.status(500).send(e.message);
