@@ -78,18 +78,39 @@ app.use(session(sess))
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-// AWS S3 configuration
-const s3Client = new S3Client({
-    region: process.env.AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
-    endpoint: process.env.S3_ENDPOINT,
-    requestHandler: httpHandler,
-    forcePathStyle: true,
-});
 
+function checkPath(targetDir) {
+    const checkDir = path.join(__dirname, targetDir);
+    if (!fs.existsSync()) {
+        fs.mkdirSync(checkDir, {recursive: true})
+    }
+}
+function returnFile(targetFile) {
+    const fullTarget = path.join(__dirname, targetFile);
+    if (!fs.existsSync(fullTarget)) {
+        fs.writeFileSync(fullTarget, '{}', { flag: 'w+' });
+    }
+    return fullTarget
+}
+
+checkPath('env');
+const storageFile = returnFile('env/storages.json');
+var s3Storages = JSON.parse(fs.readFileSync(storageFile, {
+        encoding: 'utf-8', flag: 'r'
+    }));
+function createS3Client(storage) {
+    const client = new S3Client({
+        region: s3Storages[storage]['AWS_REGION'],
+        credentials: {
+            accessKeyId: s3Storages[storage]['AWS_ACCESS_KEY_ID'],
+            secretAccessKey: s3Storages[storage]['AWS_SECRET_ACCESS_KEY'],
+        },
+        endpoint: s3Storages[storage]['S3_ENDPOINT'],
+        requestHandler: httpHandler,
+        forcePathStyle: true,
+    });
+    return client;
+}
 /*
 //Async function to get list of objects in storage
 async function s3Sync(client) {
@@ -145,7 +166,6 @@ function S3DirStructure(s3ObjList) {
             runningJson = runningJson[part];
         });
     });
-    const jsonData = JSON.stringify(finalJson, null, 4);
     fs.writeFile(path.join(__dirname, '/downloads/s3DirStructure.json'), jsonData, 'utf-8', function(e) {
         if (e) {
             console.log(e);
@@ -156,14 +176,14 @@ function S3DirStructure(s3ObjList) {
 */
 
 //Async function to get list of objects in storage
-async function s3Sync(client) {
+async function s3Sync(storage, client) {
     const objList = [];
-    for await (const data of paginateListObjectsV2({ client }, { Bucket: process.env.S3_BUCKET_NAME } )) {
+    for await (const data of paginateListObjectsV2({ client }, { Bucket: s3Storages[storage]['BUCKET'] } )) {
         objList.push(...(data.Contents ?? []));
     }
     const jsonFiltered = objList.map(item => ({ Key: item.Key, Size: item.Size, LastModified: item.LastModified }));
     const s3Objects = JSON.stringify(jsonFiltered, null, 4);
-    fs.writeFile(path.join(__dirname, '/downloads/s3ObjectList.json'), s3Objects, 'utf-8', function(e) {
+    fs.writeFile(path.join(__dirname, `/downloads/${storage}_ObjectList.json`), s3Objects, 'utf-8', function(e) {
         if (e) {
             console.log(e);
         }
@@ -172,7 +192,7 @@ async function s3Sync(client) {
 };
 
 //Create a directory structure out of a S3 object list.
-function S3DirStructure(s3ObjList) {
+function S3DirStructure(storage, s3ObjList) {
     const finalJson = {};
     s3ObjList.forEach(s3Entry => {
         //Split Key string and loop through resulting list.
@@ -193,7 +213,7 @@ function S3DirStructure(s3ObjList) {
         });
     });
     const jsonData = JSON.stringify(finalJson, null, 4);
-    fs.writeFile(path.join(__dirname, '/downloads/s3DirStructure.json'), jsonData, 'utf-8', function(e) {
+    fs.writeFile(path.join(__dirname, `/downloads/${storage}_DirStructure.json`), jsonData, 'utf-8', function(e) {
         if (e) {
             console.log(e);
         }
@@ -332,19 +352,25 @@ app.post('/upload', handleLogin, upload.single('file'), async (req, res) => {
     }
 });
 
-//Use express.text() to handle MIME type 'text/plain'
-app.use('/createdir', express.text());
 app.post('/createdir', handleLogin, async(req, res) => {
     try {
-        let newdir = req.body;
+        let newdir = req.body.newdir;
+        const storage = req.body.storage;
+        if (!newdir) {
+            return res.status(400).send('Directory required.');
+        } else if (!storage) {
+            return res.status(400).send('Storage required.');
+        }
         newdir = handleDir(newdir);
 
+        const newClient = createS3Client(storage);
         const params = {
-            Bucket: process.env.S3_BUCKET_NAME,
+            Bucket: s3Storages[storage]['BUCKET'],
             Key: newdir,
         };
         const command = new PutObjectCommand(params);
-        await s3Client.send(command);
+        await newClient.send(command);
+        newClient.destroy();
         res.send('Directory created succesfully!');
     } catch (e) {
         console.log(e);
@@ -376,33 +402,36 @@ app.get('/download', handleLogin, async (req, res) => {
 });
 app.post('/multidownload', handleLogin, async (req, res) => {
     try {
-        const array = req.body.array ? JSON.parse(req.body.array) : null;
+        const request = req.body.array ? JSON.parse(req.body.array) : null;
+        const array = request.array;
+        const storage = request.storage;
         if (!array) {
-            return res.status(400).send('Files for download required');
+            return res.status(400).send('Files for download required.');
+        } else if (!storage) {
+            return res.status(400).send('Storage required.');
         }
+        const newClient = createS3Client(storage);
+
         res.setHeader('Content-Disposition', 'attachment; filename="files.zip"');
         res.setHeader('Content-Type', 'application/zip');
-        //res.setHeader('Transfer-Encoding', 'chunked');
-        //res.flushHeaders();
 
         const archive = archiver('zip', {zlib: {level: 9 } });
         archive.pipe(res);
-
         async function file(key) {
             let s3Key = key.Key;
             let s3Name = s3Key.endsWith('/') ? s3Key.split('/').slice(-2)[0] : s3Key.split('/').slice(-1)[0];
             const params = {
-                Bucket: process.env.S3_BUCKET_NAME,
+                Bucket: s3Storages[storage]['BUCKET'],
                 Key: s3Key,
             };
             const command = new GetObjectCommand(params);
-            const data = await s3Client.send(command);
+            const data = await newClient.send(command);
             archive.append(data.Body, { name: s3Name });
-
         };
 
         await Promise.all(array.map(file));
         await archive.finalize();
+        newClient.destroy();
     } catch (e) {
         console.log(e);
         res.status(500).send(e.message);
@@ -413,26 +442,31 @@ app.post('/multidownload', handleLogin, async (req, res) => {
 app.post('/delete', handleLogin, async (req, res) => {
     try {
         const array = req.body.array;
+        const storage = req.body.storage;
         if (!array) {
-            return res.status(400).send('File for deletion is required');
+            return res.status(400).send('File for deletion is required.');
+        } else if (!storage) {
+            return res.status(400).send('Storage for deletion is required.')
         }
+        const newClient = createS3Client(storage);
         if (array.length === 1) {
             const params = {
-                Bucket: process.env.S3_BUCKET_NAME,
+                Bucket: s3Storages[storage]['BUCKET'],
                 Key: array[0].Key,
             }
             const command = new DeleteObjectCommand(params);
-            await s3Client.send(command);
+            await newClient.send(command);
         } else {
             const params = {
-                Bucket: process.env.S3_BUCKET_NAME,
+                Bucket: s3Storages[storage]['BUCKET'],
                 Delete: {
                     Objects: array,
                 }
             }
             const command = new DeleteObjectsCommand(params);
-            await s3Client.send(command)
+            await newClient.send(command);
         }
+        newClient.destroy();
         return res.status(200).send('Deletion succesful!');
     } catch (e) {
         console.log(e);
@@ -444,18 +478,14 @@ app.post('/delete', handleLogin, async (req, res) => {
 //whereas the second endpoint will update the list. 
 app.get('/filepicker1', handleLogin, async (req, res) => {
     try {
-        const downloadDir = path.join(__dirname, 'downloads');
-        if (!fs.existsSync(downloadDir)) {
-            fs.mkdirSync(downloadDir, { recursive: true });
+        var storage = req.query.storage;
+        if (storage == undefined || storage === '') {
+            storage = Object.keys(s3Storages)[0];
         }
-        const s3DirStruct = path.join(__dirname, '/downloads/s3DirStructure.json');
-        const s3ObjectList = path.join(__dirname, '/downloads/s3ObjectList.json');
-        if (!fs.existsSync(s3DirStruct)) {
-            fs.writeFileSync(s3DirStruct, '{}', { flag: 'w+' });
-        }
-        if (!fs.existsSync(s3ObjectList)) {
-            fs.writeFileSync(s3ObjectList, '{}', { flag: 'w+' });
-        }
+
+        checkPath('downloads');
+        const s3DirStruct = returnFile(`/downloads/${storage}_DirStructure.json`);
+        const s3ObjectList = returnFile(`/downloads/${storage}_ObjectList.json`);
         const [s3DirData, s3ListData] = await Promise.all([
             fs.promises.readFile(s3DirStruct, 'utf-8'),
             fs.promises.readFile(s3ObjectList, 'utf-8')
@@ -463,21 +493,28 @@ app.get('/filepicker1', handleLogin, async (req, res) => {
         const s3DirJson = JSON.parse(s3DirData);
         const s3ListJson = JSON.parse(s3ListData);
 
-        res.status(200).json({ s3Dir: s3DirJson, s3List: s3ListJson });
+        res.status(200).json({ s3Dir: s3DirJson, s3List: s3ListJson, s3Storages: Object.keys(s3Storages) });
     } catch (e) {
+        console.error(e)
         res.status(500).json({ error: `Error while parsing files: ${e}`});
     }
 });
 app.get('/filepicker2', handleLogin, async (req, res) => {
     try {
+        var storage = req.query.storage;
+        if (storage == undefined || storage === '') {
+            storage = Object.keys(s3Storages)[0];
+        }
+        const newClient = createS3Client(storage);
         const time1 = performance.now();
-        let syncedS3Objects = await s3Sync(s3Client);
+        let syncedS3Objects = await s3Sync(storage, newClient);
+        newClient.destroy();
         //Clone object to avoid it being overwritten
         const s3ObjectsClone = JSON.parse(JSON.stringify(syncedS3Objects));
-        const s3Dir = S3DirStructure(syncedS3Objects);
+        const s3Dir = S3DirStructure(storage, syncedS3Objects);
         const time2 = performance.now();
         console.log(`Old function took ${time2 - time1} ms to execute.`)
-        res.status(200).json({ s3Dir: s3Dir, s3List: s3ObjectsClone });
+        res.status(200).json({ s3Dir: s3Dir, s3List: s3ObjectsClone, s3Storages: Object.keys(s3Storages) });
     } catch(e) {
         console.error('Error while updating list:',e)
     }

@@ -90,7 +90,14 @@ function dirLVlFromKey(splitPath) {
 }
 
 function fillDropdown(htmlId, inputArray) {
-    
+    const selectItem = document.getElementById(htmlId);
+    selectItem.innerHTML = '';
+    for (i in inputArray) {
+            const option = document.createElement('option');
+            option.value = inputArray[i];
+            option.text = inputArray[i];
+            selectItem.appendChild(option);
+    }
 }
 
 function resizeS3Form() {
@@ -297,11 +304,10 @@ function sendS3Keys(targetUrl, s3Array) {
         return
     }
     s3Arrays = splitArray(1000, s3Array);
-    console.log(s3Array);
     for (entry in s3Arrays) {
         console.log(entry);
         if (targetUrl.includes('download') && s3Arrays[entry].length > 1) {
-            document.getElementById('multiDlInput').value = JSON.stringify(s3Arrays[entry]);
+            document.getElementById('multiDlInput').value = JSON.stringify({ array: s3Arrays[entry], storage: currentStorage });
             document.getElementById('multiDl').submit();
         } else if (targetUrl.includes('download') && s3Arrays[entry].length === 1) {
             singleDl(s3Arrays[entry][0].Key)
@@ -311,7 +317,7 @@ function sendS3Keys(targetUrl, s3Array) {
                 headers: {
                     'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ array: s3Arrays[entry] })
+                body: JSON.stringify({ array: s3Arrays[entry], storage: currentStorage })
             })
             .then(response => { 
                 if (response.ok){
@@ -408,9 +414,9 @@ function addDir() {
     fetch('/createdir', {
         method: 'POST',
         headers: {
-            'Content-Type': 'text/plain'
+            'Content-Type': 'application/json'
         },
-        body: newdir
+        body: JSON.stringify({ newdir: newdir, storage: currentStorage })
     })
     .then(response => { 
         if (response.ok) {
@@ -476,13 +482,21 @@ async function uploadFile() {
 }
 
 //Fetch static file list of storage & try to renew list of all objects.
-function loadExisting() {
-    fetch('/filepicker1')
+async function loadExisting(storage) {
+    if (!storage) {
+        storage = '';
+    }
+    fetch(`/filepicker1?storage=${storage}`)
         .then(response => response.json())
         .then(s3Object => {
             s3KeysGlobalVar = s3Object.s3Dir;
             fuzzySearchList = s3Object.s3List;
-            //s3Buckets = newS3Object.s3Buckets;
+            s3StorageList = s3Object.s3Storages;
+            if (storage === '') {
+                currentStorage = s3StorageList[0];
+            }
+            fillDropdown('bucket_select', s3StorageList);
+            document.getElementById('bucket_select').value = currentStorage;
             dirLvl = 0;
             s3Targets = [];
             s3InitializeUI(s3KeysGlobalVar, false);
@@ -491,13 +505,21 @@ function loadExisting() {
 }
 
 //Fetches updated list and triggers list-objects-v2 server-side.
-function renewList() {
-    fetch('/filepicker2')
+async function renewList(storage) {
+    if (!storage) {
+        storage = '';
+    }
+    fetch(`/filepicker2?storage=${storage}`)
         .then(response => response.json())
         .then(newS3Object => {
             s3KeysGlobalVar = newS3Object.s3Dir;
             fuzzySearchList = newS3Object.s3List;
-            s3Buckets = newS3Object.s3Buckets;
+            s3StorageList = newS3Object.s3Storages;
+            if (storage === '') {
+                currentStorage = s3StorageList[0];
+            }
+            fillDropdown('bucket_select', s3StorageList);
+            document.getElementById('bucket_select').value = currentStorage;
             removeElementById('loading');
         })
         .catch(e => {
@@ -519,8 +541,10 @@ function copyText(targetString, endpoint, toClipboard) {
 }
 
 //Set up event listener for cross-site-iframe.js
-async function initializeIframe() {
+async function initializeSite() {
     try {
+        await loadExisting(undefined);
+        await renewList(undefined);
         //Check if I am inside an iframe
         iframeResult = window.self !== window.top;
         if (!iframeResult === true) {
@@ -574,10 +598,20 @@ function fuzzysearch() {
     s3InitializeUI(searchS3Objects, true);
 }
 
-loadExisting();
-renewList();
+function changeBucket() {
+    insertLoading('S3_Function_Buttons');
+    bucket_selector = document.getElementById('bucket_select')
+    const bucket = bucket_selector.value;
+    currentStorage = bucket;
+    loadExisting(bucket);
+    renewList(bucket);
+    navbar = document.getElementById('S3_UI_NavBar');
+    navbar.innerHTML = '\<button id="Hom3_0_nav_btn" onclick="s3NavButton(0, \'\')"\>\<img src="graphics/OpenDirIconCC.svg"\>Home\</button\>';
+    uploadInput = '/';
+    removeElementById('loading');
+}
+
 uploadInput = '/';
-initializeIframe();
+initializeSite();
 resizeS3Form();
 window.addEventListener('resize', resizeS3Form);
-

@@ -85,9 +85,8 @@
             </button>
         </div>
         <div id="dash_settings" class="dash_body">
-            <form action="/filepicker1" method="get">
-                <select id="bucket_select" type="text" class="bucket" data-style="btn-info" placeholder="Choose storage."></select>
-                <button type="submit">Load</button>
+                <select id="bucket_select" type="text" class="storage" name="storage" data-style="btn-info" placeholder="Choose storage."></select>
+                <button id="change_bucket" type="button" onclick="changeBucket()">Load</button>
         </div>
         <div id="dash_progress" class="dash_body" style="display: none">
             <ul id="dash_progress_ul" class="dash_progress_ul"></ul>
