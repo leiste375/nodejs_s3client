@@ -388,7 +388,6 @@ app.post('/createdir', handleLogin, async(req, res) => {
 app.get('/download', handleLogin, async (req, res) => {
     try {
         const filename = req.query.filename;
-        console.log(filename);
         const storage = req.query.storage;
         if (!filename) {
             return res.status(400).send('Filename is required');
