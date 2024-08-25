@@ -15,7 +15,6 @@
     <div id="background" class="background" onclick="clearTarget()"></div>
     <div id="s3_form"  class="s3_form dash_transform">
     <div id="Filepick_UI_Header" class="Filepick_UI_Header">
-        <h3>S3 Filebrowser</h3>
         <div id="S3_UI_Functions_Container" class="S3_UI_Functions_Container">
             <div id="S3_UI_NavBar" class="S3_UI_NavBar">
                 <button id="Hom3_0_nav_btn" onclick="s3NavButton(0, '')"><img src="graphics/OpenDirIconCC.svg">Home</button>
@@ -39,7 +38,7 @@
                         <img src="graphics/DeleteModifiedGNULGPL.svg">
                     </button>
                     <button id="dash_button" class="function_button" title="Dashboard" onclick="dashControl()" style="order: 7">
-                        <img src="graphics/DashboardCC.svg">
+                        <img id="dash_button_img" src="graphics/DashboardCC.svg">
                     </button>
                     <div id="S3_Progress" class="S3_Progress" style="display: none; order: 7">
                         <progress id="S3_Upload_Progress_Bar" class="S3_Upload_Progress_Bar" max="100"></progress>

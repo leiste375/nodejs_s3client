@@ -107,8 +107,13 @@ function resizeS3Form() {
     console.log('Set!');
 }
 function dashControl() {
+    classControl('dash_button_img', 'dash_transform');
+    classControl('dash_button_img', 'dash_button_animation');
     classControl('S3_Dashboard', 'dash_transform_active');
-    classControl('s3_form', 's3_form_dash')
+    classControl('s3_form', 's3_form_dash');
+    setTimeout(() => {
+        classControl('dash_button_img', 'dash_transform');
+    }, '600');
 }
 
 //Source: https://github.com/louisremi/jquery-smartresize
@@ -121,6 +126,10 @@ function on_resize(c,t) {
         };
     return c
 };
+
+function showMessage(msgType, msg) {
+    console.log(msg);
+}
 
 //Construct directory in UI
 function s3InitializeUI(s3Keys, search) {
@@ -503,7 +512,10 @@ async function loadExisting(storage) {
             s3Targets = [];
             s3InitializeUI(s3KeysGlobalVar, false);
         })
-        .catch(e => console.error('Error fetching data:',e));
+        .catch(e => {
+            removeElementById('loading');
+            console.error('Error fetching data:',e)
+        });
 }
 
 //Fetches updated list and triggers list-objects-v2 server-side.
@@ -525,6 +537,7 @@ async function renewList(storage) {
             removeElementById('loading');
         })
         .catch(e => {
+            removeElementById('loading');
             console.error('Error updating S3 object list:',e);
         })
 }

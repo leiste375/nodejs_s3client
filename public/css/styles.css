@@ -33,6 +33,8 @@ body {
 button, input, select, label, h1, h2, h3, p, .Filepick_UI_Header, .S3_Filebrowser_UI {
     position: relative;
     z-index: 2;
+    box-sizing: border-box;
+    padding: 3px;
 }
 button:disabled, button[disabled] {
     background: var(--grey-4) !important;
@@ -79,13 +81,11 @@ input:focus {outline:none;}
 .login_form input:focus, .s3_form input[type=text]:focus, .filebrowser_focused {
     box-shadow: 0 0 3px 3px var(--light-green);
     transition: .1s;
-}
-.s3_form h3 {
-    margin-bottom: 5px;
+    z-index: 3 !important;
 }
 .s3_form {
     width: 85%;
-    margin :auto;
+    margin: 15px auto auto auto;
     position: absolute;
     left: 7.5%;
 }
@@ -114,7 +114,6 @@ input:focus {outline:none;}
     height: 100px;
     margin: .5em auto .5em auto;
     position: relative;
-    z-index: 3 !important;
 }
 .S3_UI_Button_Inner {
     box-sizing: border-box;
@@ -179,6 +178,7 @@ input:focus {outline:none;}
 .S3_Filebrowser_UI button:hover:not(.filebrowser_focused) {
     box-shadow: 0 0 2px 2px var(--light-green);
     transition: .2s;
+    z-index: 4 !important;
 }
 .S3_Functions {
     width: 40%;
@@ -280,11 +280,11 @@ input:focus {outline:none;}
     box-shadow: -2px 0 2px -2px var(--grey-1);
 }
 .dash_transform {
-    -webkit-transition: all .5s ease;  
-    -moz-transition: all .5s ease;  
-    -o-transition: all .5s ease;  
-    -ms-transition: all .5s ease;  
-    transition: all .5s ease;
+    -webkit-transition: all .5s ease !important;  
+    -moz-transition: all .5s ease !important;  
+    -o-transition: all .5s ease !important;  
+    -ms-transition: all .5s ease !important;  
+    transition: all .5s ease !important;
 }
 .dash_transform_active {
     right: 0;
@@ -313,4 +313,18 @@ input:focus {outline:none;}
 }
 .dash_body {
     margin: 10px 5px 5px 5px;
+}
+.dash_button_animation {
+    -webkit-transform: rotate(-90deg);
+    -moz-transform: rotate(-90deg);
+    -ms-transform: rotate(-90deg);
+    -o-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+}
+.dash_button_animation:hover {
+    -webkit-transform: scale(1.25) rotate(-90deg) !important);
+    -moz-transform: scale(1.25) rotate(-90deg) !important);
+    -ms-transform: scale(1.25) rotate(-90deg) !important);
+    -o-transform: scale(1.25) rotate(-90deg) !important);
+    transform: scale(1.25) rotate(-90deg) !important;
 }
